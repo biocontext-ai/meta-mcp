@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Annotated
 
 from json_schema_to_pydantic import create_model
@@ -49,10 +50,12 @@ async def call_tool(
             pydantic_model.__name__, __base__=(pydantic_model, SchemaReasoningOutput)
         )
     try:
+        model = os.environ.get("META_MCP_MODEL", "gpt-4.1-mini")
         response = get_structured_response_litellm(
             input=arguments,
             system_prompt="You will be given an input string, containing argument values, carefully convert it to the given output schema. The input might have errors or ambiguities, try to fix these using the descriptions in the output schema.",
             output_model=pydantic_model,
+            model=model,
         )
         output_parsed = structured_response_to_output_model(response, pydantic_model)
         output_parsed_dict = output_parsed.model_dump()

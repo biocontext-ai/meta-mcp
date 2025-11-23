@@ -84,6 +84,14 @@ class EnvironmentType(enum.Enum):
     default=None,
     envvar="MCP_REGISTRY_MCP_TOOLS_JSON",
 )
+@click.option(
+    "--model",
+    "model",
+    type=str,
+    help="Model name to use for structured output generation. Defaults to 'gpt-4.1-mini'.",
+    default=None,
+    envvar="META_MCP_MODEL",
+)
 def run_app(
     transport: str = "stdio",
     port: int = 8000,
@@ -94,6 +102,7 @@ def run_app(
     registry_json: str | None = None,
     registry_mcp_json: str | None = None,
     registry_mcp_tools_json: str | None = None,
+    model: str | None = None,
 ):
     """Run the MCP server "meta-mcp".
 
@@ -118,6 +127,8 @@ def run_app(
         os.environ["MCP_REGISTRY_MCP_JSON"] = registry_mcp_json
     if registry_mcp_tools_json is not None:
         os.environ["MCP_REGISTRY_MCP_TOOLS_JSON"] = registry_mcp_tools_json
+    if model is not None:
+        os.environ["META_MCP_MODEL"] = model
 
     logger = logging.getLogger(__name__)
 
