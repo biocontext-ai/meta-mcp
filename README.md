@@ -18,8 +18,8 @@ You can also find the project on [BioContextAI](https://biocontext.ai), the comm
 
 ## Installation
 
-You need to have Python 3.10 or newer installed on your system.
-If you don't have Python installed, we recommend installing [uv][].
+You need to have Python 3.11 or newer installed on your system.
+If you don't have Python installed, we recommend installing [uv][]. Internally we also make use of GPT-4.1-mini to generate structured tools calls, so you need to provide an OpenAI API key as described below. The model can be changed by setting the `META_MCP_MODEL` environment variable or the `--model` flag.
 
 There are several alternative options to install meta-mcp:
 
@@ -44,7 +44,10 @@ If your MCP server is published to PyPI, use the following configuration:
   "mcpServers": {
     "meta-mcp": {
       "command": "uvx",
-      "args": ["meta-mcp"]
+      "args": ["meta-mcp"],
+      "env": {
+        "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+      }
     }
   }
 }
@@ -56,13 +59,16 @@ In case the MCP server is not yet published to PyPI, use this configuration:
   "mcpServers": {
     "meta-mcp": {
       "command": "uvx",
-      "args": ["git+https://github.com/biocontext-ai/meta-mcp.git@main"]
+      "args": ["git+https://github.com/biocontext-ai/meta-mcp.git@main"],
+      "env": {
+        "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+      }
     }
   }
 }
 ```
 
-For purely local development (e.g., in Cursor or VS Code), use the following configuration:
+For purely local development (e.g., in Cursor or VS Code), use the following configuration (you can also provide the OPENAI_API_KEY in an `.env` file):
 
 ```json
 {
@@ -74,20 +80,26 @@ For purely local development (e.g., in Cursor or VS Code), use the following con
         "--from",
         "path/to/repository",
         "meta-mcp"
-      ]
+      ],
+      "env": {
+        "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+      }
     }
   }
 }
 ```
 
-If you want to reuse and existing environment for local development, use the following configuration:
+If you want to reuse an existing environment for local development, use the following configuration (you can also provide the OPENAI_API_KEY in an `.env` file):
 
 ```json
 {
   "mcpServers": {
     "meta-mcp": {
       "command": "uv",
-      "args": ["run", "--directory", "path/to/repository", "meta-mcp"]
+      "args": ["run", "--directory", "path/to/repository", "meta-mcp"],
+      "env": {
+        "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+      }
     }
   }
 }
