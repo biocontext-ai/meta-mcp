@@ -1,6 +1,6 @@
 import json
 from typing import Annotated
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 import litellm
 import pandas as pd
@@ -154,11 +154,29 @@ class SchemaReasoningOutput(BaseModel):
     ]
 
 
-def load_json_from_url(url: str):
-    """Download and parse the a json file."""
-    with urlopen(url) as resp:
-        data = json.load(resp)
-    return data
+def load_json_from_url(url_or_path: str):
+    """Download and parse a JSON file from URL or load from file path.
+
+    Args:
+        url_or_path: URL to download JSON from or local file path
+
+    Returns
+    -------
+        Parsed JSON data as dictionary
+    """
+    # Check if it's a URL (starts with http:// or https://) or a file path
+    if url_or_path.startswith(("http://", "https://")):
+        # Create a request with User-Agent header to avoid 403 Forbidden errors
+        req = Request(url_or_path)
+        req.add_header("User-Agent", "meta-mcp/1.0 (Python urllib)")
+        with urlopen(req) as resp:
+            data = json.load(resp)
+        return data
+    else:
+        # It's a file path
+        with open(url_or_path) as f:
+            data = json.load(f)
+        return data
 
 
 def fix_schema(schema: dict) -> dict:
