@@ -33,6 +33,8 @@ class MetaFastMCPDynamic(FastMCP):
         # Filter registry DataFrame to only include servers present in mcp.json
         mcp_server_names = list(dict.fromkeys(self._registry_config.get("mcpServers", {}).keys()))
         mcp_server_names = mcp_server_names[0::]
+        # make sure the server itself is excluded
+        mcp_server_names = [s for s in mcp_server_names if not ("biocontext-ai" in s and "meta-mcp" in s)]
         self._registry_config = {
             "mcpServers": {
                 server_name: self._registry_config.get("mcpServers", {}).get(server_name)
@@ -69,6 +71,9 @@ class MetaFastMCPDynamic(FastMCP):
         # Note: The JSON uses 'mcp_servers' (snake_case) not 'mcpServers' (camelCase)
         registry_tools = self._registry_mcp_tools.get("mcp_servers", {})
         for server_name, server_data in registry_tools.items():
+            # Only include tools from servers that are in the mcp.json file and not the server itself
+            if server_name not in mcp_server_names:
+                continue
             tools_list = server_data.get("tools", [])
             if server_name not in self._tools:
                 self._tools[server_name] = {}
