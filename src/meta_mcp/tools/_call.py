@@ -13,7 +13,6 @@ from meta_mcp.utils import (
 )
 
 
-@mcp.tool(output_schema=None)
 async def call_tool(
     server_name: Annotated[str, "The name of the server that provides the tool"],
     tool_name: Annotated[str, "The name of the tool to call"],

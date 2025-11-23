@@ -105,6 +105,9 @@ pip install --user meta-mcp
 pip install git+https://github.com/biocontext-ai/meta-mcp.git@main
 ```
 
+## Known Issues
+- When using the `--connect-on-startup` flag, the server might have trouble starting, depending on the client
+
 ## Contact
 
 If you found a bug, please use the [issue tracker][].

@@ -1,9 +1,10 @@
+import os
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Any
 
 from fastmcp import Client, FastMCP
 
-from meta_mcp.utils import load_config, load_json_from_url, registry_json_to_df
+from meta_mcp.utils import load_json_from_url, registry_json_to_df
 
 
 class MetaFastMCPDynamic(FastMCP):
@@ -14,12 +15,13 @@ class MetaFastMCPDynamic(FastMCP):
         registry_json: str,
         registry_mcp_json: str,
         registry_mcp_tools_json: str,
-        initial_config_path: str | None = None,
+        connect_on_startup: bool = False,
         *,
         name: str = "MetaMCP",
         **kwargs: Any,
     ) -> None:
-        super().__init__(name=name, **kwargs)
+        # Store connect_on_startup flag first (before calling super)
+        self._connect_on_startup = connect_on_startup
         # Load registry config from URL (not used for initial clients, just stored)
         self._registry_config = load_json_from_url(registry_mcp_json)
         # Load registry info from URL and parse to DataFrame
@@ -29,7 +31,14 @@ class MetaFastMCPDynamic(FastMCP):
             raise RuntimeError("Registry DataFrame is empty")
 
         # Filter registry DataFrame to only include servers present in mcp.json
-        mcp_server_names = set(self._registry_config.get("mcpServers", {}).keys())
+        mcp_server_names = list(dict.fromkeys(self._registry_config.get("mcpServers", {}).keys()))
+        mcp_server_names = mcp_server_names[0::]
+        self._registry_config = {
+            "mcpServers": {
+                server_name: self._registry_config.get("mcpServers", {}).get(server_name)
+                for server_name in mcp_server_names
+            }
+        }
         if "identifier" in registry_df.columns:
             registry_df = registry_df[registry_df["identifier"].isin(mcp_server_names)].copy()
         else:
@@ -73,18 +82,14 @@ class MetaFastMCPDynamic(FastMCP):
                 }
                 self._tools[server_name][tool_name] = tool_info
 
-        # Load initial config for creating initial clients (only if provided)
-        if initial_config_path is None:
-            self._config = {"mcpServers": {}}
-        else:
-            self._config = load_config(initial_config_path)
         # Lifespan-managed clients (from config)
         self._lifespan_clients: dict[str, Client] | None = None
         # Dynamically-managed clients (added at runtime)
         self._dynamic_clients: dict[str, Client] = {}
         self._dynamic_client_stacks: dict[str, AsyncExitStack] = {}
 
-        super().__init__(name=name, lifespan=self._lifespan)
+        # Call super().__init__ once with all parameters including lifespan
+        super().__init__(name=name, lifespan=self._lifespan, **kwargs)
 
     @asynccontextmanager
     async def _lifespan(self, _app: FastMCP):
@@ -94,14 +99,18 @@ class MetaFastMCPDynamic(FastMCP):
             clients: dict[str, Client] = {}
             self._lifespan_clients = clients
 
-            for server_name, server_cfg in self._config.get("mcpServers", {}).items():
+            # Use registry config if connect_on_startup is True, otherwise use empty dict
+            servers_to_connect = self._registry_config.get("mcpServers", {}) if self._connect_on_startup else {}
+
+            for server_name, server_cfg in servers_to_connect.items():
+                print(f"Connecting to server '{server_name}'")
                 server_config = {"mcpServers": {server_name: server_cfg}}
                 client = Client(server_config, name=f"{self.name}:{server_name}")
                 try:
                     await stack.enter_async_context(client)
-                except (RuntimeError, ConnectionError, ValueError):
+                except (RuntimeError, ConnectionError, ValueError) as e:
                     # Skip servers that fail to connect during initialization
-                    continue
+                    print(f"Failed to connect to server '{server_name}': {e}")
                 clients[server_name] = client
                 client_tools = await client.list_tools()
 
@@ -120,7 +129,7 @@ class MetaFastMCPDynamic(FastMCP):
                         "description": tool_dict.get("description", ""),
                     }
             try:
-                yield {"clients": clients, "config": self._config}
+                yield {"clients": clients}
             finally:
                 # Clean up lifespan clients
                 self._lifespan_clients = None
@@ -343,10 +352,19 @@ class MetaFastMCPDynamic(FastMCP):
         await self.remove_client(server_name)
 
 
+# Read connect_on_startup from environment variable, defaulting to False
+_connect_on_startup = os.getenv("MCP_CONNECT_ON_STARTUP", "false").lower() == "true"
+
+# Read file paths from environment variables, defaulting to biocontext.ai URLs
+_registry_json = os.getenv("MCP_REGISTRY_JSON", "https://biocontext.ai/registry.json")
+_registry_mcp_json = os.getenv("MCP_REGISTRY_MCP_JSON", "https://biocontext.ai/mcp.json")
+_registry_mcp_tools_json = os.getenv("MCP_REGISTRY_MCP_TOOLS_JSON", "https://biocontext.ai/mcp_tools.json")
+
 mcp: MetaFastMCPDynamic = MetaFastMCPDynamic(
-    registry_json="https://biocontext.ai/registry.json",
-    registry_mcp_json="https://biocontext.ai/mcp.json",
-    registry_mcp_tools_json="https://biocontext.ai/mcp_tools.json",
+    registry_json=_registry_json,
+    registry_mcp_json=_registry_mcp_json,
+    registry_mcp_tools_json=_registry_mcp_tools_json,
     instructions="The BioContext AI meta mcp enables access to all installable MCP servers in the BioContextAI registry with minimal context consumption.",
     on_duplicate_tools="error",
+    connect_on_startup=_connect_on_startup,
 )

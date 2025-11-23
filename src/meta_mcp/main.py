@@ -1,10 +1,9 @@
 import enum
 import logging
+import os
 import sys
 
 import click
-
-from .tools import *  # noqa: F403 import all tools to register them
 
 
 class EnvironmentType(enum.Enum):
@@ -54,12 +53,47 @@ class EnvironmentType(enum.Enum):
     envvar="MCP_ENVIRONMENT",
     help="MCP server environment. Defaults to 'development'.",
 )
+@click.option(
+    "--connect-on-startup",
+    "connect_on_startup",
+    is_flag=True,
+    default=False,
+    help="Connect to MCP servers on startup. Sets MCP_CONNECT_ON_STARTUP environment variable.",
+)
+@click.option(
+    "--registry-json",
+    "registry_json",
+    type=str,
+    help="URL or path to registry.json file. Defaults to 'https://biocontext.ai/registry.json'.",
+    default=None,
+    envvar="MCP_REGISTRY_JSON",
+)
+@click.option(
+    "--registry-mcp-json",
+    "registry_mcp_json",
+    type=str,
+    help="URL or path to mcp.json file. Defaults to 'https://biocontext.ai/mcp.json'.",
+    default=None,
+    envvar="MCP_REGISTRY_MCP_JSON",
+)
+@click.option(
+    "--registry-mcp-tools-json",
+    "registry_mcp_tools_json",
+    type=str,
+    help="URL or path to mcp_tools.json file. Defaults to 'https://biocontext.ai/mcp_tools.json'.",
+    default=None,
+    envvar="MCP_REGISTRY_MCP_TOOLS_JSON",
+)
 def run_app(
     transport: str = "stdio",
     port: int = 8000,
     hostname: str = "0.0.0.0",
     environment: EnvironmentType = EnvironmentType.DEVELOPMENT,
     version: bool = False,
+    connect_on_startup: bool = False,
+    registry_json: str | None = None,
+    registry_mcp_json: str | None = None,
+    registry_mcp_tools_json: str | None = None,
 ):
     """Run the MCP server "meta-mcp".
 
@@ -75,9 +109,28 @@ def run_app(
         click.echo(__version__)
         sys.exit(0)
 
+    # Set environment variables based on CLI flags BEFORE importing modules that use mcp
+    os.environ["MCP_CONNECT_ON_STARTUP"] = "true" if connect_on_startup else "false"
+
+    if registry_json is not None:
+        os.environ["MCP_REGISTRY_JSON"] = registry_json
+    if registry_mcp_json is not None:
+        os.environ["MCP_REGISTRY_MCP_JSON"] = registry_mcp_json
+    if registry_mcp_tools_json is not None:
+        os.environ["MCP_REGISTRY_MCP_TOOLS_JSON"] = registry_mcp_tools_json
+
     logger = logging.getLogger(__name__)
 
     from meta_mcp.mcp import mcp
+
+    # Import tools after setting environment variables so conditional imports work
+    # This ensures __all__ is populated correctly based on environment variables
+    from . import tools
+
+    # Register all tools from __all__ dynamically
+    for name in tools.__all__:
+        tool_func = getattr(tools, name)
+        mcp.tool(tool_func)
 
     if environment == EnvironmentType.DEVELOPMENT:
         logger.info("Starting MCP server (DEVELOPMENT mode)")

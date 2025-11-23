@@ -4,7 +4,6 @@ from typing import Annotated
 from meta_mcp.mcp import mcp
 
 
-@mcp.tool()
 async def get_tool_info(
     server_name: Annotated[str, "The name of the server that provides the tool"],
     tool_name: Annotated[str, "The name of the tool to get information about"],
@@ -18,9 +17,8 @@ async def get_tool_info(
     return json.dumps(input_schema)
 
 
-@mcp.tool()
 async def list_servers() -> str:
-    """Lists all MCP servers and their descriptions from the BioContextAI registry offering a wide range of tools for biomedical tasks."""
+    """Lists all available MCP servers and their descriptions, offering a wide range of tools for biomedical (analysis) tasks to choose from."""
     registry_df = mcp._registry_info
     if registry_df.empty:
         return json.dumps([])
@@ -36,7 +34,6 @@ async def list_servers() -> str:
     return json.dumps(result)
 
 
-@mcp.tool()
 async def list_server_tools(server_name: Annotated[str, "The name of the MCP server to list tools for"]) -> str:
     """Returns a list of all tools for a given MCP server."""
     # Check if server exists
