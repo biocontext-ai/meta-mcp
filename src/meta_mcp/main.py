@@ -59,13 +59,14 @@ class EnvironmentType(enum.Enum):
     is_flag=True,
     default=False,
     help="Connect to MCP servers on startup. Sets MCP_CONNECT_ON_STARTUP environment variable.",
+    envvar="MCP_CONNECT_ON_STARTUP",
 )
 @click.option(
     "--registry-json",
     "registry_json",
     type=str,
     help="URL or path to registry.json file. Defaults to 'https://biocontext.ai/registry.json'.",
-    default=None,
+    default="https://biocontext.ai/registry.json",
     envvar="MCP_REGISTRY_JSON",
 )
 @click.option(
@@ -73,7 +74,7 @@ class EnvironmentType(enum.Enum):
     "registry_mcp_json",
     type=str,
     help="URL or path to mcp.json file. Defaults to 'https://biocontext.ai/mcp.json'.",
-    default=None,
+    default="https://biocontext.ai/mcp.json",
     envvar="MCP_REGISTRY_MCP_JSON",
 )
 @click.option(
@@ -81,7 +82,7 @@ class EnvironmentType(enum.Enum):
     "registry_mcp_tools_json",
     type=str,
     help="URL or path to mcp_tools.json file. Defaults to 'https://biocontext.ai/mcp_tools.json'.",
-    default=None,
+    default="https://biocontext.ai/mcp_tools.json",
     envvar="MCP_REGISTRY_MCP_TOOLS_JSON",
 )
 @click.option(
@@ -89,8 +90,15 @@ class EnvironmentType(enum.Enum):
     "model",
     type=str,
     help="Model name to use for structured output generation. Defaults to 'gpt-4.1-mini'.",
-    default=None,
+    default="gpt-4.1-mini",
     envvar="META_MCP_MODEL",
+)
+@click.option(
+    "--reasoning/--no-reasoning",
+    "reasoning",
+    default=True,
+    help="Enable/disable reasoning output in tool calls. Sets META_MCP_REASONING environment variable. Can also be set via META_MCP_REASONING env var (true/false). Defaults to True.",
+    envvar="META_MCP_REASONING",
 )
 def run_app(
     transport: str = "stdio",
@@ -99,10 +107,11 @@ def run_app(
     environment: EnvironmentType = EnvironmentType.DEVELOPMENT,
     version: bool = False,
     connect_on_startup: bool = False,
-    registry_json: str | None = None,
-    registry_mcp_json: str | None = None,
-    registry_mcp_tools_json: str | None = None,
-    model: str | None = None,
+    registry_json: str = "https://biocontext.ai/registry.json",
+    registry_mcp_json: str = "https://biocontext.ai/mcp.json",
+    registry_mcp_tools_json: str = "https://biocontext.ai/mcp_tools.json",
+    model: str = "gpt-4.1-mini",
+    reasoning: bool = True,
 ):
     """Run the MCP server "meta-mcp".
 
@@ -120,15 +129,12 @@ def run_app(
 
     # Set environment variables based on CLI flags BEFORE importing modules that use mcp
     os.environ["MCP_CONNECT_ON_STARTUP"] = "true" if connect_on_startup else "false"
-
-    if registry_json is not None:
-        os.environ["MCP_REGISTRY_JSON"] = registry_json
-    if registry_mcp_json is not None:
-        os.environ["MCP_REGISTRY_MCP_JSON"] = registry_mcp_json
-    if registry_mcp_tools_json is not None:
-        os.environ["MCP_REGISTRY_MCP_TOOLS_JSON"] = registry_mcp_tools_json
-    if model is not None:
-        os.environ["META_MCP_MODEL"] = model
+    os.environ["MCP_REGISTRY_JSON"] = registry_json
+    os.environ["MCP_REGISTRY_MCP_JSON"] = registry_mcp_json
+    os.environ["MCP_REGISTRY_MCP_TOOLS_JSON"] = registry_mcp_tools_json
+    os.environ["META_MCP_MODEL"] = model
+    # Set reasoning env var based on click option (handles CLI flag, env var, or default)
+    os.environ["META_MCP_REASONING"] = "true" if reasoning else "false"
 
     logger = logging.getLogger(__name__)
 

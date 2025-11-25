@@ -44,7 +44,7 @@ async def call_tool(
 
     # Convert JSON schema to Pydantic model
     pydantic_model = create_model(input_schema)
-    reasoning = True
+    reasoning = os.environ.get("META_MCP_REASONING", "true").lower() == "true"
     if reasoning:
         pydantic_model = pydantic_create_model(
             pydantic_model.__name__, __base__=(pydantic_model, SchemaReasoningOutput)
@@ -59,7 +59,7 @@ async def call_tool(
         )
         output_parsed = structured_response_to_output_model(response, pydantic_model)
         output_parsed_dict = output_parsed.model_dump()
-        output_parsed_dict.pop("schema_reasoning", None)
+        output_parsed_dict.pop("biocontextai_schema_reasoning", None)
         call_result = await client.call_tool(tool_name, arguments=output_parsed_dict or {})
 
         result = {

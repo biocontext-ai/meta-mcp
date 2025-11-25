@@ -149,7 +149,7 @@ def structured_response_to_output_model(response: litellm.Response, output_model
 class SchemaReasoningOutput(BaseModel):
     """Output model for schema reasoning."""
 
-    schema_reasoning: Annotated[
+    biocontextai_schema_reasoning: Annotated[
         str, Field(description="Any reasoning that might help to arrive at an answer that matches the given schema.")
     ]
 
