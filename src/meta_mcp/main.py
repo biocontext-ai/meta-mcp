@@ -89,8 +89,8 @@ class EnvironmentType(enum.Enum):
     "--model",
     "model",
     type=str,
-    help="Model name to use for structured output generation. Defaults to 'gpt-4.1-mini'.",
-    default="gpt-4.1-mini",
+    help="Model name to use for structured output generation. Defaults to 'gpt-5-nano'.",
+    default="gpt-5-nano",
     envvar="META_MCP_MODEL",
 )
 @click.option(
@@ -110,7 +110,7 @@ def run_app(
     registry_json: str = "https://biocontext.ai/registry.json",
     registry_mcp_json: str = "https://biocontext.ai/mcp.json",
     registry_mcp_tools_json: str = "https://biocontext.ai/mcp_tools.json",
-    model: str = "gpt-4.1-mini",
+    model: str = "gpt-5-nano",
     reasoning: bool = True,
 ):
     """Run the MCP server "meta-mcp".

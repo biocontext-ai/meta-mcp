@@ -50,16 +50,16 @@ async def call_tool(
             pydantic_model.__name__, __base__=(pydantic_model, SchemaReasoningOutput)
         )
     try:
-        model = os.environ.get("META_MCP_MODEL", "gpt-4.1-mini")
+        model = os.environ.get("META_MCP_MODEL", "gpt-5-nano")
         response = get_structured_response_litellm(
             input=arguments,
-            system_prompt="You will be given an input string, containing argument values, carefully convert it to the given output schema. The input might have errors or ambiguities, try to fix these using the descriptions in the output schema.",
+            system_prompt="You will be given an input string, containing arguments and argument values, carefully convert it to the given output schema.",
             output_model=pydantic_model,
             model=model,
         )
         output_parsed = structured_response_to_output_model(response, pydantic_model)
         output_parsed_dict = output_parsed.model_dump()
-        output_parsed_dict.pop("biocontextai_schema_reasoning", None)
+        output_parsed_dict = {key: value for key, value in output_parsed_dict.items() if key in arguments}
         call_result = await client.call_tool(tool_name, arguments=output_parsed_dict or {})
 
         result = {
