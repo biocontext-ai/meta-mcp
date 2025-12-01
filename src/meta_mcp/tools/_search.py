@@ -24,42 +24,47 @@ async def get_tool_info(
     return json.dumps(input_schema)
 
 
-async def list_servers() -> str:
-    """Lists all available MCP servers and their descriptions, offering a wide range of tools for biomedical (analysis) tasks to choose from."""
+async def list_servers(
+    query: Annotated[str | None, "Optional query to filter the servers by"] = None,
+) -> str:
+    """Lists all (or just the filtered) MCP servers and their descriptions, offering a wide range of tools for biomedical (analysis) tasks to choose from."""
     registry_df = mcp._registry_info
     if registry_df.empty:
-        return json.dumps([])
+        return json.dumps({}, indent=4)
 
     # Extract identifier and description columns
     result = []
-    for _, row in registry_df.iterrows():
-        server_info = {
-            row.get("identifier"): row.get("description", ""),
-        }
-        result.append(server_info)
+    server_ids = registry_df["identifier"].tolist()
+    descriptions = registry_df["description"].tolist()
+    result = dict(zip(server_ids, [des if des is not None else "" for des in descriptions], strict=True))
 
-    return json.dumps(result)
+    top_n = 10
+    if query is not None and len(server_ids) > top_n:
+        server_ids_filtered = general_search(query, server_ids, descriptions=descriptions, top_n=top_n, mode="llm")
+        result = {server_id: result[server_id] for server_id in server_ids_filtered}
+
+    return json.dumps(result, indent=4)
 
 
-async def list_server_tools(server_name: Annotated[str, "The name of the MCP server to list tools for"]) -> str:
-    """Returns a list of all tools for a given MCP server."""
-    # Check if server exists
+async def list_server_tools(
+    server_name: Annotated[str, "The name of the MCP server to list tools for"],
+    query: Annotated[str | None, "Optional query to filter the tools by"] = None,
+) -> str:
+    """Returns a list of all (or just the filtered) tools for a given MCP server."""
     if server_name not in mcp._tools:
-        raise RuntimeError(f"Server '{server_name}' not found in tools")
-    if server_name not in mcp._servers:
-        raise RuntimeError(f"Server '{server_name}' not found in servers")
+        raise RuntimeError(f"Server '{server_name}' not found")
 
-    # Get tools from _tools dict (which contains both registry and connected tools)
-    tool_info = []
-    if server_name in mcp._tools:
-        for tool_name, tool_data in mcp._tools[server_name].items():
-            tool_info.append(
-                {
-                    tool_data.get("name", tool_name): tool_data.get("description", ""),
-                }
-            )
+    tools = mcp._tools[server_name]
+    tool_names = list(tools.keys())
+    descriptions = [tools[t].get("description", None) for t in tool_names]
+    result = dict(zip(tool_names, [des if des is not None else "" for des in descriptions], strict=True))
 
-    return json.dumps(tool_info)
+    top_n = 10
+    if query is not None and len(tool_names) > top_n:
+        tool_names_filtered = general_search(query, tool_names, descriptions=descriptions, top_n=top_n, mode="llm")
+        result = {tool_name: result[tool_name] for tool_name in tool_names_filtered}
+
+    return json.dumps(result, indent=4)
 
 
 def general_search(
