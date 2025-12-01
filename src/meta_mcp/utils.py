@@ -117,7 +117,7 @@ def structured_response_to_output_model(response: litellm.Response, output_model
     if not response.output or len(response.output) == 0:
         raise ValueError("No output found in response")
 
-    output_message = response.output[0]
+    output_message = response.output[-1]
     if not output_message.content or len(output_message.content) == 0:
         raise ValueError("No content found in response output message")
 
