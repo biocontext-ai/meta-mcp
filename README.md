@@ -19,7 +19,7 @@ You can also find the project on [BioContextAI](https://biocontext.ai), the comm
 ## Installation
 
 You need to have Python 3.11 or newer installed on your system.
-If you don't have Python installed, we recommend installing [uv][]. Internally we also make use of GPT-4.1-mini to generate structured tools calls, so you need to provide an OpenAI API key as described below. The model can be changed by setting the `META_MCP_MODEL` environment variable or the `--model` flag, e.g., to `openai/gpt-5-nano`.
+If you don't have Python installed, we recommend installing [uv][]. Internally we also make use of GPT-4.1-mini to generate structured tools calls, so you need to provide an API key for your chosen provider (OpenAI, Anthropic, or Google) as described below. The model can be changed by setting the `META_MCP_MODEL` environment variable or the `--model` flag, e.g., to `openai/gpt-5-nano` or `anthropic/claude-haiku-4-5-20251001`.
 
 There are several alternative options to install meta-mcp:
 
@@ -47,6 +47,8 @@ If your MCP server is published to PyPI, use the following configuration:
       "args": ["meta-mcp"],
       "env": {
         "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY": "YOUR ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY": "YOUR GEMINI_API_KEY"
       }
     }
   }
@@ -62,13 +64,15 @@ In case the MCP server is not yet published to PyPI, use this configuration:
       "args": ["git+https://github.com/biocontext-ai/meta-mcp.git@main"],
       "env": {
         "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY": "YOUR ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY": "YOUR GEMINI_API_KEY"
       }
     }
   }
 }
 ```
 
-For purely local development (e.g., in Cursor or VS Code), use the following configuration (you can also provide the OPENAI_API_KEY in an `.env` file):
+For purely local development (e.g., in Cursor or VS Code), use the following configuration (you can also provide API keys in an `.env` file):
 
 ```json
 {
@@ -83,13 +87,15 @@ For purely local development (e.g., in Cursor or VS Code), use the following con
       ],
       "env": {
         "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY": "YOUR ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY": "YOUR GEMINI_API_KEY"
       }
     }
   }
 }
 ```
 
-If you want to reuse an existing environment for local development, use the following configuration (you can also provide the OPENAI_API_KEY in an `.env` file):
+If you want to reuse an existing environment for local development, use the following configuration (you can also provide API keys in an `.env` file):
 
 ```json
 {
@@ -99,6 +105,8 @@ If you want to reuse an existing environment for local development, use the foll
       "args": ["run", "--directory", "path/to/repository", "meta-mcp"],
       "env": {
         "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY": "YOUR ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY": "YOUR GEMINI_API_KEY"
       }
     }
   }
