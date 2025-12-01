@@ -28,10 +28,14 @@ dependencies = [
   "fastmcp",
   "httpx<1",
   "json-schema-to-pydantic>=0.4.7",
-  "litellm>=1.80",
+  "litellm>=1.80.7",
+  "numpy",
   "pandas>=2.3.3",
+  "rapidfuzz",
+  "sentence-transformers",
 ]
 optional-dependencies.dev = [
+  "jupyter",
   "pre-commit",
   "twine>=4.0.2",
 ]
