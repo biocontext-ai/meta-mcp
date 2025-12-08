@@ -19,7 +19,7 @@ You can also find the project on [BioContextAI](https://biocontext.ai), the comm
 ## Installation
 
 You need to have Python 3.11 or newer installed on your system.
-If you don't have Python installed, we recommend installing [uv][]. Internally we also make use of GPT-4.1-mini to generate structured tools calls, so you need to provide an API key for your chosen provider (OpenAI, Anthropic, or Google) as described below. The model can be changed by setting the `META_MCP_MODEL` environment variable or the `--model` flag, e.g., to `openai/gpt-5-nano` or `anthropic/claude-haiku-4-5-20251001`. We recommend using `gpt-5-nano` or `gpt-5-mini` for their strong structured output support.
+If you don't have Python installed, we recommend installing [uv][]. Internally we also make use of an LLM to generate structured tools calls, so you need to provide an API key for your chosen provider (OpenAI, Anthropic, or Google) as described below. The model can be changed by setting the `META_MCP_MODEL` environment variable or the `--model` flag, e.g., to `openai/gpt-5-nano` or `anthropic/claude-haiku-4-5-20251001`. We recommend using `openai/gpt-5-nano` or `openai/gpt-5-mini` for their guaranteed structured output support.
 
 There are several alternative options to install meta-mcp:
 
