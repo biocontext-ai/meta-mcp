@@ -17,7 +17,7 @@ from meta_mcp.utils import (
 async def call_tool(
     server_name: Annotated[str, "The name of the server that provides the tool"],
     tool_name: Annotated[str, "The name of the tool to call"],
-    arguments: Annotated[str, "The arguments to pass to the tool"],
+    arguments: Annotated[str, "The arguments to pass to the tool as a JSON string"],
 ) -> str:
     """Call a tool with the given arguments. Returns the output of the called tool."""
     # Check if server is connected, if not try to connect it from registry
@@ -50,7 +50,7 @@ async def call_tool(
             pydantic_model.__name__, __base__=(pydantic_model, SchemaReasoningOutput)
         )
     try:
-        model = os.environ.get("META_MCP_MODEL", "gpt-5-nano")
+        model = os.environ.get("META_MCP_MODEL", "openai/gpt-5-nano")
         response = get_structured_response_litellm(
             input=arguments,
             system_prompt="You will be given an input string, containing arguments and argument values, carefully convert it to the given output schema.",

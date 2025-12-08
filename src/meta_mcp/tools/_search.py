@@ -276,7 +276,7 @@ def _llm_search(
     query: str,
     candidates: list[str],
     top_n: int,
-    model: str = "gpt-5-nano",
+    model: str = "openai/gpt-5-nano",
     temperature: float = 1.0,
     descriptions: list[str | None] | None = None,
     verbose: bool = False,
@@ -293,7 +293,7 @@ def _llm_search(
     top_n : int
         Number of top results to return.
     model : str, optional
-        Model name for LLM backend (default: "gpt-5-nano").
+        Model name for LLM backend (default: "openai/gpt-5-nano").
     temperature : float, optional
         Sampling temperature (default: 1.0).
     descriptions : list[str | None] | None, optional

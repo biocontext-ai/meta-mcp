@@ -51,7 +51,7 @@ def get_structured_response_litellm(
     input: str,
     system_prompt: str,
     output_model: type[BaseModel],
-    model: str = "gpt-4.1-mini",
+    model: str = "openai/gpt-5-nano",
     temperature: float = 1.0,
 ) -> BaseModel:
     """Get a structured response from LiteLLM using JSON schema validation.
@@ -60,7 +60,7 @@ def get_structured_response_litellm(
         input: The user input text
         system_prompt: The system prompt to guide the model
         output_model: Pydantic model class defining the expected output schema
-        model: The model name to use (default: "gpt-4.1-mini")
+        model: The model name to use (default: "openai/gpt-5-nano")
         temperature: Sampling temperature (default: 1.0)
 
     Returns
