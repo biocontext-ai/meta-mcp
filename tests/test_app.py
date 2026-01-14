@@ -88,12 +88,10 @@ async def test_mcp_server_works_with_anndata_mcp(
 
     mock_call_parse_output.side_effect = mock_call_parse_output_func
 
-    # Register all tools from tools module
-    from meta_mcp import tools
+    # Register all tools from tools module (skip if already registered)
+    from .helpers import register_tools
 
-    for name in tools.__all__:
-        tool_func = getattr(tools, name)
-        mcp.tool(tool_func)
+    register_tools()
 
     # create a dummy anndata object
     adata = create_dummy_anndata()

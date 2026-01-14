@@ -5,6 +5,30 @@ import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix
 
+# Configure anndata settings for compatibility with pre-release versions
+try:
+    import anndata
+
+    # Enable nullable string writing for compatibility with newer pandas/anndata versions
+    anndata.settings.allow_write_nullable_strings = True
+except (ImportError, AttributeError):
+    # Fallback for older versions where this setting doesn't exist
+    pass
+
+
+def register_tools():
+    """Register all tools with the MCP server, skipping if already registered."""
+    from meta_mcp import tools
+    from meta_mcp.mcp import mcp
+
+    for name in tools.__all__:
+        tool_func = getattr(tools, name)
+        try:
+            mcp.tool(tool_func)
+        except ValueError:
+            # Tool already exists, skip
+            pass
+
 
 def create_dummy_anndata(n_obs: int = 100, n_vars: int = 50, seed: int = 42) -> ad.AnnData:
     """Create a dummy AnnData object with various attributes for testing.
@@ -34,7 +58,7 @@ def create_dummy_anndata(n_obs: int = 100, n_vars: int = 50, seed: int = 42) -> 
             "n_genes": rng.integers(10, n_vars, size=n_obs),
             "percent_mito": rng.random(n_obs),
             "n_counts": rng.integers(1000, 10000, size=n_obs),
-            "cell_type": rng.choice(["TypeA", "TypeB", "TypeC"], size=n_obs),
+            "cell_type": rng.choice(["TypeA", "TypeB", "TypeC"], size=n_obs).astype(object),
         },
         index=[f"cell_{i}" for i in range(n_obs)],
     )

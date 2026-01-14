@@ -7,22 +7,9 @@ from fastmcp.exceptions import ToolError
 
 from meta_mcp.mcp import mcp
 
-from .helpers import create_dummy_anndata
+from .helpers import create_dummy_anndata, register_tools
 
 # Helper functions to reduce code duplication
-
-
-def register_tools():
-    """Register all tools with the MCP server, skipping if already registered."""
-    from meta_mcp import tools
-
-    for name in tools.__all__:
-        tool_func = getattr(tools, name)
-        try:
-            mcp.tool(tool_func)
-        except ValueError:
-            # Tool already exists, skip
-            pass
 
 
 def setup_search_mocks(mock_parse_output, mock_get_response, selected_strings=None):
