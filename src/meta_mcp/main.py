@@ -96,9 +96,34 @@ class EnvironmentType(enum.Enum):
 @click.option(
     "--reasoning/--no-reasoning",
     "reasoning",
-    default=True,
+    default=False,
     help="Enable/disable reasoning output in tool calls. Sets META_MCP_REASONING environment variable. Can also be set via META_MCP_REASONING env var (true/false). Defaults to True.",
     envvar="META_MCP_REASONING",
+)
+@click.option(
+    "-n",
+    "--max-servers",
+    "max_servers",
+    type=int,
+    help="Maximum number of servers to return in search results. Defaults to '10'.",
+    default=10,
+    envvar="MCP_MAX_SERVERS",
+)
+@click.option(
+    "-x",
+    "--max-tools",
+    "max_tools",
+    type=int,
+    help="Maximum number of tools to return in search results. Defaults to '10'.",
+    default=10,
+    envvar="MCP_MAX_TOOLS",
+)
+@click.option(
+    "--output-args",
+    "output_args",
+    is_flag=True,
+    help="Output schema-conformed arguments in tool calls. Sets META_MCP_OUTPUT_ARGS environment variable to true when present. Can also be set via META_MCP_OUTPUT_ARGS env var (true/false). Defaults to False.",
+    envvar="META_MCP_OUTPUT_ARGS",
 )
 def run_app(
     transport: str = "stdio",
@@ -112,6 +137,9 @@ def run_app(
     registry_mcp_tools_json: str = "https://biocontext.ai/mcp_tools.json",
     model: str = "openai/gpt-5-nano",
     reasoning: bool = True,
+    max_servers: int = 10,
+    max_tools: int = 10,
+    output_args: bool = False,
 ):
     """Run the MCP server "meta-mcp".
 
@@ -135,6 +163,9 @@ def run_app(
     os.environ["META_MCP_MODEL"] = model
     # Set reasoning env var based on click option (handles CLI flag, env var, or default)
     os.environ["META_MCP_REASONING"] = "true" if reasoning else "false"
+    os.environ["MCP_MAX_SERVERS"] = str(max_servers)
+    os.environ["MCP_MAX_TOOLS"] = str(max_tools)
+    os.environ["META_MCP_OUTPUT_ARGS"] = "true" if output_args else "false"
 
     logger = logging.getLogger(__name__)
 

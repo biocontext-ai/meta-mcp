@@ -59,12 +59,14 @@ async def call_tool(
         )
         output_parsed = structured_response_to_output_model(response, pydantic_model)
         output_parsed_dict = output_parsed.model_dump()
-        output_parsed_dict = {key: value for key, value in output_parsed_dict.items() if key in arguments}
+        # remove the reasoning output
+        output_parsed_dict.pop("biocontextai_schema_reasoning", None)
         call_result = await client.call_tool(tool_name, arguments=output_parsed_dict or {})
 
-        result = {
-            "content": [block.model_dump() for block in call_result.content],
-        }
+        result = {"content": [block.model_dump() for block in call_result.content]}
+        # Only include schema_conform_arguments if the output-args flag is set
+        if os.environ.get("META_MCP_OUTPUT_ARGS", "false").lower() == "true":
+            result["schema_conform_arguments"] = json.dumps(output_parsed_dict)
         return json.dumps(result)
     except (RuntimeError, ValueError, KeyError, TypeError) as e:
         return f"Failed to call tool: {e}"

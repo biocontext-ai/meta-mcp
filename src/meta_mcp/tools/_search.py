@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Annotated, Literal
 
 import httpx
@@ -38,9 +39,16 @@ async def list_servers(
     descriptions = registry_df["description"].tolist()
     result = dict(zip(server_ids, [des if des is not None else "" for des in descriptions], strict=True))
 
-    top_n = 10
+    top_n = int(os.environ.get("MCP_MAX_SERVERS", "10"))
     if query is not None and len(server_ids) > top_n:
-        server_ids_filtered = general_search(query, server_ids, descriptions=descriptions, top_n=top_n, mode="llm")
+        server_ids_filtered = general_search(
+            query,
+            server_ids,
+            descriptions=descriptions,
+            top_n=top_n,
+            mode="llm",
+            reasoning=os.environ.get("META_MCP_REASONING", "false") == "true",
+        )
         result = {server_id: result[server_id] for server_id in server_ids_filtered}
 
     return json.dumps(result, indent=4)
@@ -59,7 +67,7 @@ async def list_server_tools(
     descriptions = [tools[t].get("description", None) for t in tool_names]
     result = dict(zip(tool_names, [des if des is not None else "" for des in descriptions], strict=True))
 
-    top_n = 10
+    top_n = int(os.environ.get("MCP_MAX_TOOLS", "10"))
     if query is not None and len(tool_names) > top_n:
         tool_names_filtered = general_search(query, tool_names, descriptions=descriptions, top_n=top_n, mode="llm")
         result = {tool_name: result[tool_name] for tool_name in tool_names_filtered}
@@ -74,6 +82,7 @@ def general_search(
     mode: Literal["string_match", "llm", "semantic"] = "string_match",
     string_match_method: Literal["fuzzy", "substring"] = "fuzzy",
     descriptions: list[str | None] | None = None,
+    reasoning: bool = True,
     **kwargs,
 ) -> list[str]:
     """
@@ -101,6 +110,7 @@ def general_search(
         - For "llm" mode:
           - model: Model name for LLM backend (default: "gpt-5-nano")
           - temperature: Sampling temperature (default: 1.0)
+          - reasoning: Whether to include reasoning in LLM output (default: True)
         - For "semantic" mode:
           - backend: "direct" or "http" (default: "direct")
           - model: Model name for direct backend (default: "all-MiniLM-L6-v2")
@@ -129,7 +139,7 @@ def general_search(
     if mode == "string_match":
         return _string_match_search(query, candidates, top_n, string_match_method)
     elif mode == "llm":
-        return _llm_search(query, candidates, top_n, descriptions=descriptions, **kwargs)
+        return _llm_search(query, candidates, top_n, descriptions=descriptions, reasoning=reasoning, **kwargs)
     elif mode == "semantic":
         return _semantic_search(query, candidates, top_n, descriptions=descriptions, **kwargs)
     else:
@@ -182,18 +192,20 @@ def _string_match_search(
         raise ValueError(f"Invalid string_match_method: {method}. Must be one of: 'fuzzy', 'substring'")
 
 
-def _create_search_output_model(candidates: list[str]) -> type[BaseModel]:
+def _create_search_output_model(candidates: list[str], reasoning: bool = True) -> type[BaseModel]:
     """Create a dynamic Pydantic model for LLM search output.
 
     Parameters
     ----------
     candidates : list[str]
         List of candidate strings to create Literal types from.
+    reasoning : bool, optional
+        Whether to include a reasoning field in the output model (default: True).
 
     Returns
     -------
     type[BaseModel]
-        Dynamically created Pydantic model with reasoning and selected_strings fields.
+        Dynamically created Pydantic model with selected_strings field and optionally reasoning field.
     """
     # Create a single Literal type with all candidates unpacked from a tuple
     # This ensures type safety - each selected string must be one of the candidates
@@ -201,18 +213,21 @@ def _create_search_output_model(candidates: list[str]) -> type[BaseModel]:
     candidate_literal_type = Literal[*candidates_tuple]
 
     # Create the model dynamically
-    return create_model(
-        "SearchOutput",
-        reasoning=(str, Field(description="Reasoning about which strings were selected and why they match the query.")),
-        selected_strings=(
-            list[candidate_literal_type],
-            Field(description=f"List of selected strings from the candidates. Must be one of: {candidates}"),
-        ),
+    fields = {}
+    if reasoning:
+        fields["reasoning"] = (
+            str,
+            Field(description="Reasoning about which strings were selected and why they match the query."),
+        )
+    fields["selected_strings"] = (
+        list[candidate_literal_type],
+        Field(description="List of selected strings from the candidates."),
     )
+    return create_model("SearchOutput", **fields)
 
 
 def _create_search_system_prompt(
-    candidates: list[str], top_n: int, descriptions: list[str | None] | None = None
+    candidates: list[str], top_n: int, descriptions: list[str | None] | None = None, reasoning: bool = True
 ) -> str:
     """Create a system prompt template for LLM search.
 
@@ -225,6 +240,8 @@ def _create_search_system_prompt(
     descriptions : list[str | None] | None, optional
         Optional list of descriptions for candidates. If provided and not all None,
         formats candidates and descriptions as CSV table. Otherwise uses numbered list format.
+    reasoning : bool, optional
+        Whether to include reasoning instructions in the prompt (default: True).
 
     Returns
     -------
@@ -250,8 +267,8 @@ Your task:
 - Analyze the user's query and identify the {top_n} most fitting strings from the candidates above
 - Return the selected strings ordered by relevance (best match first)
 - Each selected string must be exactly one of the candidate strings listed above (use the Candidate column value)
-- If available mostly rely on the descriptions to find the best matches otherwise use the candidate strings themselves
-- Provide very concise reasoning about why these strings were selected and how they match the query
+- If available mostly rely on the descriptions to find the best matches otherwise use the candidate strings themselves{"" if reasoning else ""}
+{"- Provide very concise reasoning about why these strings were selected and how they match the query" if reasoning else ""}
 
 Return exactly {top_n} strings (or fewer if there are fewer than {top_n} candidates)."""
     else:
@@ -266,7 +283,7 @@ Your task:
 - Analyze the user's query and identify the {top_n} most fitting strings from the candidates above
 - Return the selected strings ordered by relevance (best match first)
 - Each selected string must be exactly one of the candidate strings listed above
-- Provide very concise reasoning about why these strings were selected and how they match the query
+{"- Provide very concise reasoning about why these strings were selected and how they match the query" if reasoning else ""}
 
 Return exactly {top_n} strings (or fewer if there are fewer than {top_n} candidates)."""
     return prompt
@@ -279,6 +296,7 @@ def _llm_search(
     model: str = "openai/gpt-5-nano",
     temperature: float = 1.0,
     descriptions: list[str | None] | None = None,
+    reasoning: bool = True,
     verbose: bool = False,
     **kwargs,
 ) -> list[str]:
@@ -300,6 +318,8 @@ def _llm_search(
         Optional list of descriptions for candidates. When provided, candidates and
         descriptions are formatted as CSV in the system prompt to help the LLM
         make better matches. The function still returns only the original candidates.
+    reasoning : bool, optional
+        Whether to include reasoning in LLM output and prompt (default: True).
     **kwargs
         Additional keyword arguments (unused, reserved for future use).
 
@@ -322,10 +342,10 @@ def _llm_search(
     top_n = min(top_n, len(candidates))
 
     # Create dynamic output model
-    output_model = _create_search_output_model(candidates)
+    output_model = _create_search_output_model(candidates, reasoning=reasoning)
 
     # Create system prompt
-    system_prompt = _create_search_system_prompt(candidates, top_n, descriptions=descriptions)
+    system_prompt = _create_search_system_prompt(candidates, top_n, descriptions=descriptions, reasoning=reasoning)
 
     # Get structured response from LLM
     try:
@@ -337,7 +357,7 @@ def _llm_search(
             temperature=temperature,
         )
         parsed_output = structured_response_to_output_model(response, output_model)
-        if verbose:
+        if verbose and reasoning and hasattr(parsed_output, "reasoning"):
             print(f"Reasoning: {parsed_output.reasoning}")
         selected_strings = parsed_output.selected_strings
     except Exception as e:
