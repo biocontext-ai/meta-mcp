@@ -4,7 +4,7 @@ requires = [ "hatchling" ]
 
 [project]
 name = "meta-mcp"
-version = "0.0.1"
+version = "0.1.0"
 description = "The BioContext AI meta mcp enables access to all installable MCP servers in the BioContextAI registry with minimal context consumption."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -22,8 +22,6 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  # for debug logging (referenced from the issue template)
-  # "session-info2",
   "click",
   "fastmcp",
   "httpx<1",
@@ -34,12 +32,13 @@ dependencies = [
   "rapidfuzz",
   "sentence-transformers",
 ]
-optional-dependencies.dev = [
+[dependency-groups]
+dev = [
   "jupyter",
   "pre-commit",
   "twine>=4.0.2",
 ]
-optional-dependencies.doc = [
+doc = [
   "docutils>=0.8,!=0.18.*,!=0.19.*",
   "ipykernel",
   "ipython",
@@ -55,18 +54,21 @@ optional-dependencies.doc = [
   # "sphinxcontrib-bibtex>=1",
   "sphinxext-opengraph",
 ]
-optional-dependencies.test = [
+test = [
   "coverage",
   "pytest",
   "pytest-asyncio",
+  "anndata",
 ]
-# https://docs.pypi.org/project_metadata/#project-urls
-urls.Documentation = "https://meta-mcp.readthedocs.io/"
-urls.Homepage = "https://github.com/biocontext-ai/meta-mcp"
-urls.Source = "https://github.com/biocontext-ai/meta-mcp"
 
-scripts."meta-mcp" = "meta_mcp.main:run_app"
-scripts.meta_mcp = "meta_mcp.main:run_app"
+[project.urls]
+Documentation = "https://meta-mcp.readthedocs.io/"
+Homepage = "https://github.com/biocontext-ai/meta-mcp"
+Source = "https://github.com/biocontext-ai/meta-mcp"
+
+[project.scripts]
+meta-mcp = "meta_mcp.main:run_app"
+meta_mcp = "meta_mcp.main:run_app"
 
 [tool.hatch.build.targets.wheel]
 packages = [ "src/meta_mcp" ]
