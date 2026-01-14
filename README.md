@@ -24,7 +24,9 @@ If you don't have Python installed, we recommend installing [uv][]. Internally w
 There are several alternative options to install meta-mcp:
 
 ### 1. Use `uvx` to run it immediately
+
 After publication to PyPI:
+
 ```bash
 uvx meta-mcp
 ```
@@ -54,6 +56,7 @@ If your MCP server is published to PyPI, use the following configuration:
   }
 }
 ```
+
 In case the MCP server is not yet published to PyPI, use this configuration:
 
 ```json
@@ -113,19 +116,29 @@ If you want to reuse an existing environment for local development, use the foll
 }
 ```
 
-### 3. Install it through `pip`:
+### 3. Install it through `pip`
 
 ```bash
 pip install --user meta-mcp
 ```
 
-### 4. Install the latest development version:
+### 4. Install the latest development version
 
 ```bash
 pip install git+https://github.com/biocontext-ai/meta-mcp.git@main
 ```
 
+## How it works
+
+The meta-mcp server provides dynamic access to MCP servers from the BioContextAI registry with minimal context consumption. It works through several key mechanisms:
+
+- **Dynamic server connections**: Automatically connects to and manages MCP servers on-demand, loading configurations and tool metadata from remote JSON registries
+- **LLM-powered search**: Uses AI to intelligently search and filter available servers and tools across multiple modes (string matching, semantic search, and LLM-based reasoning)
+- **Structured output generation**: Leverages LiteLLM integration to generate properly structured tool calls with JSON schema validation and Pydantic model generation
+- **Tool exploration**: Provides dynamic discovery and exploration of available tools with configurable result limits and comprehensive metadata access
+
 ## Known Issues
+
 - When using the `--connect-on-startup` flag, the server might have trouble starting, depending on the client
 
 ## Contact
