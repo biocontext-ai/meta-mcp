@@ -32,7 +32,7 @@ dependencies = [
   "rapidfuzz",
   "sentence-transformers",
 ]
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
   "jupyter",
   "pre-commit",

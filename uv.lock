@@ -2312,7 +2312,7 @@ dependencies = [
     { name = "sentence-transformers" },
 ]
 
-[package.dev-dependencies]
+[package.optional-dependencies]
 dev = [
     { name = "jupyter" },
     { name = "pre-commit" },
@@ -2341,43 +2341,36 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anndata", marker = "extra == 'test'" },
     { name = "click" },
+    { name = "coverage", marker = "extra == 'test'" },
+    { name = "docutils", marker = "extra == 'doc'", specifier = ">=0.8,!=0.18.*,!=0.19.*" },
     { name = "fastmcp", specifier = "<3" },
     { name = "httpx", specifier = "<1" },
+    { name = "ipykernel", marker = "extra == 'doc'" },
+    { name = "ipython", marker = "extra == 'doc'" },
     { name = "json-schema-to-pydantic", specifier = ">=0.4.7" },
+    { name = "jupyter", marker = "extra == 'dev'" },
     { name = "litellm", specifier = ">=1.80.7" },
+    { name = "myst-nb", marker = "extra == 'doc'", specifier = ">=1.1" },
     { name = "numpy" },
     { name = "pandas", specifier = ">=2.3.3" },
+    { name = "pandas", marker = "extra == 'doc'" },
+    { name = "pre-commit", marker = "extra == 'dev'" },
+    { name = "pytest", marker = "extra == 'test'" },
+    { name = "pytest-asyncio", marker = "extra == 'test'" },
     { name = "rapidfuzz" },
     { name = "sentence-transformers" },
+    { name = "setuptools", marker = "extra == 'doc'" },
+    { name = "sphinx", marker = "extra == 'doc'", specifier = ">=8.1" },
+    { name = "sphinx-autoapi", marker = "extra == 'doc'" },
+    { name = "sphinx-book-theme", marker = "extra == 'doc'", specifier = ">=1" },
+    { name = "sphinx-copybutton", marker = "extra == 'doc'" },
+    { name = "sphinx-tabs", marker = "extra == 'doc'" },
+    { name = "sphinxext-opengraph", marker = "extra == 'doc'" },
+    { name = "twine", marker = "extra == 'dev'", specifier = ">=4.0.2" },
 ]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "jupyter" },
-    { name = "pre-commit" },
-    { name = "twine", specifier = ">=4.0.2" },
-]
-doc = [
-    { name = "docutils", specifier = ">=0.8,!=0.18.*,!=0.19.*" },
-    { name = "ipykernel" },
-    { name = "ipython" },
-    { name = "myst-nb", specifier = ">=1.1" },
-    { name = "pandas" },
-    { name = "setuptools" },
-    { name = "sphinx", specifier = ">=8.1" },
-    { name = "sphinx-autoapi" },
-    { name = "sphinx-book-theme", specifier = ">=1" },
-    { name = "sphinx-copybutton" },
-    { name = "sphinx-tabs" },
-    { name = "sphinxext-opengraph" },
-]
-test = [
-    { name = "anndata" },
-    { name = "coverage" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-]
+provides-extras = ["dev", "doc", "test"]
 
 [[package]]
 name = "mistune"
