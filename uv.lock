@@ -2342,7 +2342,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "click" },
-    { name = "fastmcp" },
+    { name = "fastmcp", specifier = "<3" },
     { name = "httpx", specifier = "<1" },
     { name = "json-schema-to-pydantic", specifier = ">=0.4.7" },
     { name = "litellm", specifier = ">=1.80.7" },
