@@ -17,7 +17,7 @@ class MetaFastMCPDynamic(FastMCP):
         registry_mcp_tools_json: str,
         connect_on_startup: bool = False,
         *,
-        name: str = "MetaMCP",
+        name: str = "meta-mcp",
         **kwargs: Any,
     ) -> None:
         # Store connect_on_startup flag first (before calling super)
@@ -30,21 +30,8 @@ class MetaFastMCPDynamic(FastMCP):
         if registry_df.empty:
             raise RuntimeError("Registry DataFrame is empty")
 
-        # Filter registry DataFrame to only include servers present in mcp.json
-        mcp_server_names = list(dict.fromkeys(self._registry_config.get("mcpServers", {}).keys()))
-        mcp_server_names = mcp_server_names[0::]
-        # make sure the server itself is excluded
-        mcp_server_names = [s for s in mcp_server_names if not ("biocontext-ai" in s and "meta-mcp" in s)]
-        self._registry_config = {
-            "mcpServers": {
-                server_name: self._registry_config.get("mcpServers", {}).get(server_name)
-                for server_name in mcp_server_names
-            }
-        }
-        if "identifier" in registry_df.columns:
-            registry_df = registry_df[registry_df["identifier"].isin(mcp_server_names)].copy()
-        else:
-            raise RuntimeError("Identifier column not found in registry DataFrame")
+        # Filter registry servers and update configurations
+        mcp_server_names, registry_df = self._filter_and_setup_registry(registry_df)
         self._registry_info = registry_df
 
         # Load MCP tools JSON from URL and store as dict
@@ -88,7 +75,7 @@ class MetaFastMCPDynamic(FastMCP):
                 self._tools[server_name][tool_name] = tool_info
 
         # Lifespan-managed clients (from config)
-        self._lifespan_clients: dict[str, Client] | None = None
+        self._lifespan_clients: dict[str, Client] = {}
         # Dynamically-managed clients (added at runtime)
         self._dynamic_clients: dict[str, Client] = {}
         self._dynamic_client_stacks: dict[str, AsyncExitStack] = {}
@@ -96,14 +83,48 @@ class MetaFastMCPDynamic(FastMCP):
         # Call super().__init__ once with all parameters including lifespan
         super().__init__(name=name, lifespan=self._lifespan, **kwargs)
 
+    def _filter_and_setup_registry(self, registry_df):
+        # Get server names from registry config, preserving order but removing duplicates
+        mcp_server_names = list(dict.fromkeys(self._registry_config.get("mcpServers", {}).keys()))
+
+        # Exclude this server itself (meta-mcp)
+        mcp_server_names = [s for s in mcp_server_names if not ("biocontext-ai" in s and "meta-mcp" in s)]
+
+        # Update registry config to only include filtered servers
+        self._registry_config = {
+            "mcpServers": {
+                server_name: self._registry_config.get("mcpServers", {}).get(server_name)
+                for server_name in mcp_server_names
+            }
+        }
+
+        # Filter registry DataFrame to match
+        if "identifier" in registry_df.columns:
+            registry_df = registry_df[registry_df["identifier"].isin(mcp_server_names)].copy()
+        else:
+            raise RuntimeError("Identifier column not found in registry DataFrame")
+
+        return mcp_server_names, registry_df
+
+    async def _update_tools_from_client(self, server_name: str, client: Client) -> None:
+        """Update tool metadata for a server from a connected client."""
+        client_tools = await client.list_tools()
+        if server_name not in self._tools:
+            self._tools[server_name] = {}
+
+        for tool in client_tools:
+            tool_dict = tool.model_dump()
+            # Handle both inputSchema (from FastMCP) and input_schema (from registry)
+            input_schema = tool_dict.get("input_schema", tool_dict.get("inputSchema", {}))
+            self._tools[server_name][tool.name] = {
+                "name": tool.name,
+                "input_schema": input_schema,
+                "description": tool_dict.get("description", ""),
+            }
+
     @asynccontextmanager
     async def _lifespan(self, _app: FastMCP):
         async with AsyncExitStack() as stack:
-            # Initialize lifespan_clients to empty dict at the start of lifespan
-            # This allows add_client to work even if no initial clients are configured
-            clients: dict[str, Client] = {}
-            self._lifespan_clients = clients
-
             # Use registry config if connect_on_startup is True, otherwise use empty dict
             servers_to_connect = self._registry_config.get("mcpServers", {}) if self._connect_on_startup else {}
 
@@ -116,28 +137,13 @@ class MetaFastMCPDynamic(FastMCP):
                 except (RuntimeError, ConnectionError, ValueError) as e:
                     # Skip servers that fail to connect during initialization
                     print(f"Failed to connect to server '{server_name}': {e}")
-                clients[server_name] = client
-                client_tools = await client.list_tools()
-
-                # Initialize nested dict for this server
-                if server_name not in self._tools:
-                    self._tools[server_name] = {}
-
-                # Update _tools with metadata from connected client
-                for tool in client_tools:
-                    tool_dict = tool.model_dump()
-                    # Handle both inputSchema (from FastMCP) and input_schema (from registry)
-                    input_schema = tool_dict.get("input_schema", tool_dict.get("inputSchema", {}))
-                    self._tools[server_name][tool.name] = {
-                        "name": tool.name,
-                        "input_schema": input_schema,
-                        "description": tool_dict.get("description", ""),
-                    }
+                self._lifespan_clients[server_name] = client
+                await self._update_tools_from_client(server_name, client)
             try:
-                yield {"clients": clients}
+                yield {"clients": self._lifespan_clients}
             finally:
                 # Clean up lifespan clients
-                self._lifespan_clients = None
+                self._lifespan_clients = {}
                 # Clean up any remaining dynamic clients
                 await self._cleanup_all_dynamic_clients()
 
@@ -157,11 +163,6 @@ class MetaFastMCPDynamic(FastMCP):
             RuntimeError: If clients are not initialized or server already exists
             Exception: If client connection fails
         """
-        # Initialize lifespan_clients to empty dict if not yet initialized
-        # This allows adding dynamic clients even if no initial clients were configured
-        if self._lifespan_clients is None:
-            self._lifespan_clients = {}
-
         if server_name in self._lifespan_clients:
             raise RuntimeError(f"Server '{server_name}' already exists in lifespan-managed clients")
 
@@ -186,19 +187,7 @@ class MetaFastMCPDynamic(FastMCP):
                 }
 
             # Update tools with metadata from connected client
-            client_tools = await client.list_tools()
-            if server_name not in self._tools:
-                self._tools[server_name] = {}
-
-            for tool in client_tools:
-                tool_dict = tool.model_dump()
-                # Handle both inputSchema (from FastMCP) and input_schema (from registry)
-                input_schema = tool_dict.get("input_schema", tool_dict.get("inputSchema", {}))
-                self._tools[server_name][tool.name] = {
-                    "name": tool.name,
-                    "input_schema": input_schema,
-                    "description": tool_dict.get("description", ""),
-                }
+            await self._update_tools_from_client(server_name, client)
         except Exception as e:
             # Clean up on failure
             await stack.aclose()
@@ -214,7 +203,7 @@ class MetaFastMCPDynamic(FastMCP):
         ------
             RuntimeError: If server doesn't exist or is lifespan-managed
         """
-        if self._lifespan_clients is not None and server_name in self._lifespan_clients:
+        if server_name in self._lifespan_clients:
             raise RuntimeError(
                 f"Cannot remove lifespan-managed client '{server_name}'. Only dynamically-added clients can be removed."
             )
@@ -275,9 +264,6 @@ class MetaFastMCPDynamic(FastMCP):
         ------
             RuntimeError: If clients are not initialized or server doesn't exist
         """
-        if self._lifespan_clients is None:
-            raise RuntimeError("Clients are not initialized")
-
         # Check lifespan clients first
         if server_name in self._lifespan_clients:
             return self._lifespan_clients[server_name]
@@ -299,9 +285,6 @@ class MetaFastMCPDynamic(FastMCP):
         ------
             RuntimeError: If clients are not initialized
         """
-        if self._lifespan_clients is None:
-            raise RuntimeError("Clients are not initialized")
-
         # Combine both client pools
         all_clients = dict(self._lifespan_clients)
         all_clients.update(self._dynamic_clients)
@@ -318,8 +301,6 @@ class MetaFastMCPDynamic(FastMCP):
         ------
             RuntimeError: If clients are not initialized
         """
-        if self._lifespan_clients is None:
-            raise RuntimeError("Clients are not initialized")
         return self._lifespan_clients
 
     def get_dynamic_clients(self) -> dict[str, Client]:
@@ -330,17 +311,6 @@ class MetaFastMCPDynamic(FastMCP):
             Dictionary of dynamically-managed clients
         """
         return dict(self._dynamic_clients)
-
-    def list_client_names(self) -> list[str]:
-        """List all connected client names.
-
-        Returns
-        -------
-            List of server names
-        """
-        if self._lifespan_clients is None:
-            return []
-        return list(self._lifespan_clients.keys()) + list(self._dynamic_clients.keys())
 
     async def connect_to_server(self, server_name: str) -> None:
         """Connect to a server from the registry."""
