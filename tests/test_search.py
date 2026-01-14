@@ -511,3 +511,197 @@ class TestGeneralSearch:
         system_prompt = call_args.kwargs["system_prompt"]
         assert "Candidate,Description" in system_prompt
         assert "API,Application Programming Interface" in system_prompt
+
+    @patch("meta_mcp.tools._search._create_search_output_model")
+    @patch("meta_mcp.tools._search.get_structured_response_litellm")
+    @patch("meta_mcp.tools._search.structured_response_to_output_model")
+    def test_llm_mode_reasoning_true_default(self, mock_parse_output, mock_get_response, mock_create_model):
+        """Test LLM search mode with reasoning=True (default)."""
+        candidates = ["machine learning", "deep learning", "neural networks"]
+        query = "AI"
+
+        # Mock the output model with reasoning field
+        mock_output_model = MagicMock()
+        mock_create_model.return_value = mock_output_model
+
+        mock_output = MagicMock()
+        mock_output.selected_strings = ["machine learning", "deep learning"]
+        mock_output.reasoning = "Selected AI-related terms"
+        mock_parse_output.return_value = mock_output
+
+        mock_response = MagicMock()
+        mock_get_response.return_value = mock_response
+
+        result = general_search(query, candidates, top_n=2, mode="llm")
+
+        assert len(result) == 2
+        assert "machine learning" in result
+        assert "deep learning" in result
+        # Verify reasoning=True was passed to create model
+        mock_create_model.assert_called_once_with(candidates, reasoning=True)
+
+    @patch("meta_mcp.tools._search._create_search_output_model")
+    @patch("meta_mcp.tools._search.get_structured_response_litellm")
+    @patch("meta_mcp.tools._search.structured_response_to_output_model")
+    def test_llm_mode_reasoning_false(self, mock_parse_output, mock_get_response, mock_create_model):
+        """Test LLM search mode with reasoning=False."""
+        candidates = ["machine learning", "deep learning", "neural networks"]
+        query = "AI"
+
+        # Mock the output model without reasoning field
+        mock_output_model = MagicMock()
+        mock_create_model.return_value = mock_output_model
+
+        mock_output = MagicMock()
+        mock_output.selected_strings = ["machine learning", "deep learning"]
+        # No reasoning field when reasoning=False
+        mock_parse_output.return_value = mock_output
+
+        mock_response = MagicMock()
+        mock_get_response.return_value = mock_response
+
+        result = general_search(query, candidates, top_n=2, mode="llm", reasoning=False)
+
+        assert len(result) == 2
+        assert "machine learning" in result
+        assert "deep learning" in result
+        # Verify reasoning=False was passed to create model
+        mock_create_model.assert_called_once_with(candidates, reasoning=False)
+
+    @patch("meta_mcp.tools._search._create_search_system_prompt")
+    @patch("meta_mcp.tools._search.get_structured_response_litellm")
+    @patch("meta_mcp.tools._search.structured_response_to_output_model")
+    def test_llm_mode_reasoning_prompt_true(self, mock_parse_output, mock_get_response, mock_create_prompt):
+        """Test that LLM search includes reasoning instructions in prompt when reasoning=True."""
+        candidates = ["machine learning", "deep learning", "neural networks"]
+        query = "AI"
+
+        mock_output = MagicMock()
+        mock_output.selected_strings = ["machine learning", "deep learning"]
+        mock_parse_output.return_value = mock_output
+
+        mock_response = MagicMock()
+        mock_get_response.return_value = mock_response
+
+        # Mock system prompt creation
+        mock_create_prompt.return_value = "Test prompt with reasoning"
+
+        _ = general_search(query, candidates, top_n=2, mode="llm", reasoning=True)
+
+        # Verify reasoning=True was passed to create prompt
+        mock_create_prompt.assert_called_once_with(candidates, 2, descriptions=None, reasoning=True)
+        # Verify the prompt contains reasoning instruction
+        call_args = mock_get_response.call_args
+        system_prompt = call_args.kwargs["system_prompt"]
+        assert "reasoning" in system_prompt.lower()
+
+    @patch("meta_mcp.tools._search._create_search_system_prompt")
+    @patch("meta_mcp.tools._search.get_structured_response_litellm")
+    @patch("meta_mcp.tools._search.structured_response_to_output_model")
+    def test_llm_mode_reasoning_prompt_false(self, mock_parse_output, mock_get_response, mock_create_prompt):
+        """Test that LLM search excludes reasoning instructions in prompt when reasoning=False."""
+        candidates = ["machine learning", "deep learning", "neural networks"]
+        query = "AI"
+
+        mock_output = MagicMock()
+        mock_output.selected_strings = ["machine learning", "deep learning"]
+        mock_parse_output.return_value = mock_output
+
+        mock_response = MagicMock()
+        mock_get_response.return_value = mock_response
+
+        # Mock system prompt creation
+        mock_create_prompt.return_value = "Test prompt for selection"
+
+        _ = general_search(query, candidates, top_n=2, mode="llm", reasoning=False)
+
+        # Verify reasoning=False was passed to create prompt
+        mock_create_prompt.assert_called_once_with(candidates, 2, descriptions=None, reasoning=False)
+        # Verify the prompt does not contain reasoning instruction
+        call_args = mock_get_response.call_args
+        system_prompt = call_args.kwargs["system_prompt"]
+        assert "reasoning" not in system_prompt.lower()
+
+    @patch("meta_mcp.tools._search._create_search_output_model")
+    @patch("meta_mcp.tools._search.get_structured_response_litellm")
+    @patch("meta_mcp.tools._search.structured_response_to_output_model")
+    def test_llm_mode_verbose_reasoning_true(self, mock_parse_output, mock_get_response, mock_create_model, capsys):
+        """Test verbose output includes reasoning when reasoning=True."""
+        candidates = ["machine learning", "deep learning", "neural networks"]
+        query = "AI"
+
+        # Mock the output model with reasoning field
+        mock_output_model = MagicMock()
+        mock_create_model.return_value = mock_output_model
+
+        mock_output = MagicMock()
+        mock_output.selected_strings = ["machine learning", "deep learning"]
+        mock_output.reasoning = "Selected AI-related terms"
+        mock_parse_output.return_value = mock_output
+
+        mock_response = MagicMock()
+        mock_get_response.return_value = mock_response
+
+        _ = general_search(query, candidates, top_n=2, mode="llm", verbose=True)
+
+        # Capture printed output
+        captured = capsys.readouterr()
+        assert "Reasoning: Selected AI-related terms" in captured.out
+
+    @patch("meta_mcp.tools._search._create_search_output_model")
+    @patch("meta_mcp.tools._search.get_structured_response_litellm")
+    @patch("meta_mcp.tools._search.structured_response_to_output_model")
+    def test_llm_mode_verbose_reasoning_false(self, mock_parse_output, mock_get_response, mock_create_model, capsys):
+        """Test verbose output does not include reasoning when reasoning=False."""
+        candidates = ["machine learning", "deep learning", "neural networks"]
+        query = "AI"
+
+        # Mock the output model without reasoning field
+        mock_output_model = MagicMock()
+        mock_create_model.return_value = mock_output_model
+
+        mock_output = MagicMock()
+        mock_output.selected_strings = ["machine learning", "deep learning"]
+        # No reasoning field
+        mock_parse_output.return_value = mock_output
+
+        mock_response = MagicMock()
+        mock_get_response.return_value = mock_response
+
+        _ = general_search(query, candidates, top_n=2, mode="llm", reasoning=False, verbose=True)
+
+        # Capture printed output - should not contain reasoning
+        captured = capsys.readouterr()
+        assert "Reasoning:" not in captured.out
+
+    @patch("meta_mcp.tools._search._create_search_system_prompt")
+    @patch("meta_mcp.tools._search._create_search_output_model")
+    @patch("meta_mcp.tools._search.get_structured_response_litellm")
+    @patch("meta_mcp.tools._search.structured_response_to_output_model")
+    def test_llm_mode_reasoning_with_descriptions(
+        self, mock_parse_output, mock_get_response, mock_create_model, mock_create_prompt
+    ):
+        """Test LLM search with reasoning parameter and descriptions."""
+        candidates = ["ML", "DL", "NN"]
+        descriptions = ["Machine Learning", "Deep Learning", "Neural Networks"]
+        query = "AI"
+
+        # Mock the output model with reasoning field
+        mock_output_model = MagicMock()
+        mock_create_model.return_value = mock_output_model
+
+        mock_output = MagicMock()
+        mock_output.selected_strings = ["ML", "DL"]
+        mock_output.reasoning = "Selected AI-related terms"
+        mock_parse_output.return_value = mock_output
+
+        mock_response = MagicMock()
+        mock_get_response.return_value = mock_response
+
+        mock_create_prompt.return_value = "Test prompt"
+
+        _ = general_search(query, candidates, top_n=2, mode="llm", descriptions=descriptions, reasoning=True)
+
+        # Verify both reasoning=True and descriptions were passed correctly
+        mock_create_model.assert_called_once_with(candidates, reasoning=True)
+        mock_create_prompt.assert_called_once_with(candidates, 2, descriptions=descriptions, reasoning=True)
