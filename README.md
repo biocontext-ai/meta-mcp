@@ -1,4 +1,4 @@
-# meta-mcp
+# BioContext AI Meta MCP
 
 [![BioContextAI - Registry](https://img.shields.io/badge/Registry-package?style=flat&label=BioContextAI&labelColor=%23fff&color=%233555a1&link=https%3A%2F%2Fbiocontext.ai%2Fregistry)](https://biocontext.ai/registry)
 [![Tests][badge-tests]][tests]
@@ -7,7 +7,7 @@
 [badge-tests]: https://img.shields.io/github/actions/workflow/status/biocontext-ai/meta-mcp/test.yaml?branch=main
 [badge-docs]: https://img.shields.io/readthedocs/meta-mcp
 
-The BioContext AI meta mcp enables access to all installable MCP servers in the BioContextAI registry with minimal context consumption.
+The BioContext AI Meta MCP enables access to all installable MCP servers in the BioContextAI registry with minimal context consumption.
 
 ## Getting started
 
@@ -28,7 +28,7 @@ There are several alternative options to install meta-mcp:
 After publication to PyPI:
 
 ```bash
-uvx meta-mcp
+uvx biocontext-meta
 ```
 
 Or from a Git repository:
@@ -46,7 +46,7 @@ If your MCP server is published to PyPI, use the following configuration:
   "mcpServers": {
     "meta-mcp": {
       "command": "uvx",
-      "args": ["meta-mcp"],
+      "args": ["biocontext-meta"],
       "env": {
         "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
         "ANTHROPIC_API_KEY": "YOUR ANTHROPIC_API_KEY",
@@ -86,7 +86,7 @@ For purely local development (e.g., in Cursor or VS Code), use the following con
         "--refresh",
         "--from",
         "path/to/repository",
-        "meta-mcp"
+        "biocontext-meta"
       ],
       "env": {
         "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
@@ -105,7 +105,7 @@ If you want to reuse an existing environment for local development, use the foll
   "mcpServers": {
     "meta-mcp": {
       "command": "uv",
-      "args": ["run", "--directory", "path/to/repository", "meta-mcp"],
+      "args": ["run", "--directory", "path/to/repository", "biocontext-meta"],
       "env": {
         "OPENAI_API_KEY": "YOUR OPENAI_API_KEY",
         "ANTHROPIC_API_KEY": "YOUR ANTHROPIC_API_KEY",
@@ -119,7 +119,7 @@ If you want to reuse an existing environment for local development, use the foll
 ### 3. Install it through `pip`
 
 ```bash
-pip install --user meta-mcp
+pip install --user biocontext-meta
 ```
 
 ### 4. Install the latest development version
@@ -130,7 +130,7 @@ pip install git+https://github.com/biocontext-ai/meta-mcp.git@main
 
 ## How it works
 
-The meta-mcp server provides dynamic access to MCP servers from the BioContextAI registry with minimal context consumption. It works through several key mechanisms:
+The BioContext AI Meta MCP provides dynamic access to MCP servers from the BioContextAI registry with minimal context consumption. It works through several key mechanisms:
 
 - **Dynamic server connections**: Automatically connects to and manages MCP servers on-demand, loading configurations and tool metadata from remote JSON registries
 - **LLM-powered search**: Uses AI to intelligently search and filter available servers and tools across multiple modes (string matching, semantic search, and LLM-based reasoning)
@@ -155,4 +155,4 @@ If you found a bug, please use the [issue tracker][].
 [documentation]: https://meta-mcp.readthedocs.io
 [changelog]: https://meta-mcp.readthedocs.io/en/latest/changelog.html
 [api documentation]: https://meta-mcp.readthedocs.io/en/latest/api.html
-[pypi]: https://pypi.org/project/meta-mcp
+[pypi]: https://pypi.org/project/biocontext-meta

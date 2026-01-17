@@ -17,7 +17,7 @@ HERE = Path(__file__).parent
 
 # NOTE: If you installed your project in editable mode, this might be stale.
 #       If this is the case, reinstall it to refresh the metadata
-info = metadata("meta-mcp")
+info = metadata("biocontext-meta")
 project_name = info["Name"]
 author = info["Author"]
 copyright = f"{datetime.now():%Y}, {author}."

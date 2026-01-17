@@ -382,6 +382,82 @@ wheels = [
 ]
 
 [[package]]
+name = "biocontext-meta"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "click" },
+    { name = "fastmcp" },
+    { name = "httpx" },
+    { name = "json-schema-to-pydantic" },
+    { name = "litellm" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "rapidfuzz" },
+    { name = "sentence-transformers" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "jupyter" },
+    { name = "pre-commit" },
+    { name = "twine" },
+]
+doc = [
+    { name = "docutils" },
+    { name = "ipykernel" },
+    { name = "ipython" },
+    { name = "myst-nb" },
+    { name = "pandas" },
+    { name = "setuptools" },
+    { name = "sphinx" },
+    { name = "sphinx-autoapi" },
+    { name = "sphinx-book-theme" },
+    { name = "sphinx-copybutton" },
+    { name = "sphinx-tabs" },
+    { name = "sphinxext-opengraph" },
+]
+test = [
+    { name = "anndata" },
+    { name = "coverage" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anndata", marker = "extra == 'test'" },
+    { name = "click", specifier = ">=8.3.1" },
+    { name = "coverage", marker = "extra == 'test'" },
+    { name = "docutils", marker = "extra == 'doc'", specifier = ">=0.8,!=0.18.*,!=0.19.*" },
+    { name = "fastmcp", specifier = "<3" },
+    { name = "httpx", specifier = "<1" },
+    { name = "ipykernel", marker = "extra == 'doc'" },
+    { name = "ipython", marker = "extra == 'doc'" },
+    { name = "json-schema-to-pydantic", specifier = ">=0.4.7" },
+    { name = "jupyter", marker = "extra == 'dev'" },
+    { name = "litellm", specifier = ">=1.80.7" },
+    { name = "myst-nb", marker = "extra == 'doc'", specifier = ">=1.1" },
+    { name = "numpy", specifier = ">=2.4.1" },
+    { name = "pandas", specifier = ">=2.3.3" },
+    { name = "pandas", marker = "extra == 'doc'" },
+    { name = "pre-commit", marker = "extra == 'dev'" },
+    { name = "pytest", marker = "extra == 'test'" },
+    { name = "pytest-asyncio", marker = "extra == 'test'" },
+    { name = "rapidfuzz", specifier = ">=3.14.3" },
+    { name = "sentence-transformers", specifier = ">=5.2.0" },
+    { name = "setuptools", marker = "extra == 'doc'" },
+    { name = "sphinx", marker = "extra == 'doc'", specifier = ">=8.1" },
+    { name = "sphinx-autoapi", marker = "extra == 'doc'" },
+    { name = "sphinx-book-theme", marker = "extra == 'doc'", specifier = ">=1" },
+    { name = "sphinx-copybutton", marker = "extra == 'doc'" },
+    { name = "sphinx-tabs", marker = "extra == 'doc'" },
+    { name = "sphinxext-opengraph", marker = "extra == 'doc'" },
+    { name = "twine", marker = "extra == 'dev'", specifier = ">=4.0.2" },
+]
+provides-extras = ["dev", "doc", "test"]
+
+[[package]]
 name = "bleach"
 version = "6.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2295,82 +2371,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec9
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979, upload-time = "2022-08-14T12:40:09.779Z" },
 ]
-
-[[package]]
-name = "meta-mcp"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "click" },
-    { name = "fastmcp" },
-    { name = "httpx" },
-    { name = "json-schema-to-pydantic" },
-    { name = "litellm" },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "rapidfuzz" },
-    { name = "sentence-transformers" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "jupyter" },
-    { name = "pre-commit" },
-    { name = "twine" },
-]
-doc = [
-    { name = "docutils" },
-    { name = "ipykernel" },
-    { name = "ipython" },
-    { name = "myst-nb" },
-    { name = "pandas" },
-    { name = "setuptools" },
-    { name = "sphinx" },
-    { name = "sphinx-autoapi" },
-    { name = "sphinx-book-theme" },
-    { name = "sphinx-copybutton" },
-    { name = "sphinx-tabs" },
-    { name = "sphinxext-opengraph" },
-]
-test = [
-    { name = "anndata" },
-    { name = "coverage" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "anndata", marker = "extra == 'test'" },
-    { name = "click" },
-    { name = "coverage", marker = "extra == 'test'" },
-    { name = "docutils", marker = "extra == 'doc'", specifier = ">=0.8,!=0.18.*,!=0.19.*" },
-    { name = "fastmcp", specifier = "<3" },
-    { name = "httpx", specifier = "<1" },
-    { name = "ipykernel", marker = "extra == 'doc'" },
-    { name = "ipython", marker = "extra == 'doc'" },
-    { name = "json-schema-to-pydantic", specifier = ">=0.4.7" },
-    { name = "jupyter", marker = "extra == 'dev'" },
-    { name = "litellm", specifier = ">=1.80.7" },
-    { name = "myst-nb", marker = "extra == 'doc'", specifier = ">=1.1" },
-    { name = "numpy" },
-    { name = "pandas", specifier = ">=2.3.3" },
-    { name = "pandas", marker = "extra == 'doc'" },
-    { name = "pre-commit", marker = "extra == 'dev'" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-asyncio", marker = "extra == 'test'" },
-    { name = "rapidfuzz" },
-    { name = "sentence-transformers" },
-    { name = "setuptools", marker = "extra == 'doc'" },
-    { name = "sphinx", marker = "extra == 'doc'", specifier = ">=8.1" },
-    { name = "sphinx-autoapi", marker = "extra == 'doc'" },
-    { name = "sphinx-book-theme", marker = "extra == 'doc'", specifier = ">=1" },
-    { name = "sphinx-copybutton", marker = "extra == 'doc'" },
-    { name = "sphinx-tabs", marker = "extra == 'doc'" },
-    { name = "sphinxext-opengraph", marker = "extra == 'doc'" },
-    { name = "twine", marker = "extra == 'dev'", specifier = ">=4.0.2" },
-]
-provides-extras = ["dev", "doc", "test"]
 
 [[package]]
 name = "mistune"

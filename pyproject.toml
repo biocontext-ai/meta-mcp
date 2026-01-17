@@ -22,15 +22,15 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "click",
+  "click>=8.3.1",
   "fastmcp<3",
   "httpx<1",
   "json-schema-to-pydantic>=0.4.7",
   "litellm>=1.80.7",
-  "numpy",
+  "numpy>=2.4.1",
   "pandas>=2.3.3",
-  "rapidfuzz",
-  "sentence-transformers",
+  "rapidfuzz>=3.14.3",
+  "sentence-transformers>=5.2.0",
 ]
 [project.optional-dependencies]
 dev = [
@@ -67,8 +67,8 @@ Homepage = "https://github.com/biocontext-ai/meta-mcp"
 Source = "https://github.com/biocontext-ai/meta-mcp"
 
 [project.scripts]
-meta-mcp = "meta_mcp.main:run_app"
-meta_mcp = "meta_mcp.main:run_app"
+biocontext-meta = "meta_mcp.main:run_app"
+biocontext_meta = "meta_mcp.main:run_app"
 
 [tool.hatch.build.targets.wheel]
 packages = [ "src/meta_mcp" ]
