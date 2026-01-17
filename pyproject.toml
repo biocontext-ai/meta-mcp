@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = [ "hatchling" ]
 
 [project]
-name = "meta-mcp"
+name = "biocontext-meta"
 version = "0.1.0"
 description = "The BioContext AI meta mcp enables access to all installable MCP servers in the BioContextAI registry with minimal context consumption."
 readme = "README.md"
