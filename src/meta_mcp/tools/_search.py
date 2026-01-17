@@ -41,12 +41,13 @@ async def list_servers(
 
     top_n = int(os.environ.get("MCP_MAX_SERVERS", "10"))
     if query is not None and len(server_ids) > top_n:
+        search_mode = os.environ.get("MCP_SEARCH_MODE", "llm")
         server_ids_filtered = general_search(
             query,
             server_ids,
             descriptions=descriptions,
             top_n=top_n,
-            mode="llm",
+            mode=search_mode,
             reasoning=os.environ.get("META_MCP_REASONING", "false") == "true",
         )
         result = {server_id: result[server_id] for server_id in server_ids_filtered}
@@ -69,7 +70,14 @@ async def list_server_tools(
 
     top_n = int(os.environ.get("MCP_MAX_TOOLS", "10"))
     if query is not None and len(tool_names) > top_n:
-        tool_names_filtered = general_search(query, tool_names, descriptions=descriptions, top_n=top_n, mode="llm")
+        search_mode = os.environ.get("MCP_SEARCH_MODE", "llm")
+        tool_names_filtered = general_search(
+            query,
+            tool_names,
+            descriptions=descriptions,
+            top_n=top_n,
+            mode=search_mode,
+        )
         result = {tool_name: result[tool_name] for tool_name in tool_names_filtered}
 
     return json.dumps(result, indent=4)
@@ -444,7 +452,7 @@ def _semantic_search(
     top_n: int,
     backend: Literal["direct", "http"] = "direct",
     model: str = "all-MiniLM-L6-v2",
-    http_url: str = "http://127.0.0.1:8501/embed",
+    http_url: str | None = None,
     descriptions: list[str | None] | None = None,
     **kwargs,
 ) -> list[str]:
@@ -464,7 +472,8 @@ def _semantic_search(
     model : str, optional
         Model name for direct backend (default: "all-MiniLM-L6-v2").
     http_url : str, optional
-        URL for HTTP backend (default: "http://127.0.0.1:8501/embed").
+        URL for HTTP backend (default: "http://127.0.0.1:8501/embed"). When unset,
+        falls back to the META_MCP_EMBEDDING_HTTP_URL environment variable.
     descriptions : list[str | None] | None, optional
         Optional list of descriptions for candidates. Combined with candidates
         as "candidate (description)" for embedding computation.
@@ -483,6 +492,8 @@ def _semantic_search(
     """
     if not candidates:
         return []
+    if http_url is None:
+        http_url = os.getenv("META_MCP_EMBEDDING_HTTP_URL", "http://127.0.0.1:8501/embed")
 
     # Prepare combined strings for embedding and maintain mapping to originals
     combined_strings, original_candidates = _prepare_semantic_candidates(candidates, descriptions)
