@@ -154,11 +154,12 @@ class SchemaReasoningOutput(BaseModel):
     ]
 
 
-def load_json_from_url(url_or_path: str):
+def load_json_from_url(url_or_path: str, timeout: float = 10.0):
     """Download and parse a JSON file from URL or load from file path.
 
     Args:
         url_or_path: URL to download JSON from or local file path
+        timeout: Timeout in seconds for URL requests (default: 10.0)
 
     Returns
     -------
@@ -169,7 +170,7 @@ def load_json_from_url(url_or_path: str):
         # Create a request with User-Agent header to avoid 403 Forbidden errors
         req = Request(url_or_path)
         req.add_header("User-Agent", "meta-mcp/1.0 (Python urllib)")
-        with urlopen(req) as resp:
+        with urlopen(req, timeout=timeout) as resp:
             data = json.load(resp)
         return data
     else:
