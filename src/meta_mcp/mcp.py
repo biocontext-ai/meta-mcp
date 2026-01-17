@@ -253,12 +253,15 @@ class MetaFastMCPDynamic(FastMCP):
     def get_client(self, server_name: str) -> Client:
         """Get a client by name (from either pool).
 
-        Args:
-            server_name: Name of the server
+        Parameters
+        ----------
+        server_name : str
+            Name of the server.
 
         Returns
         -------
-            Client instance
+        Client
+            Client instance.
 
         Raises
         ------
@@ -279,7 +282,8 @@ class MetaFastMCPDynamic(FastMCP):
 
         Returns
         -------
-            Combined dictionary of all clients
+        dict[str, Client]
+            Combined dictionary of all clients.
 
         Raises
         ------
@@ -295,7 +299,8 @@ class MetaFastMCPDynamic(FastMCP):
 
         Returns
         -------
-            Dictionary of lifespan-managed clients
+        dict[str, Client]
+            Dictionary of lifespan-managed clients.
 
         Raises
         ------
@@ -308,7 +313,8 @@ class MetaFastMCPDynamic(FastMCP):
 
         Returns
         -------
-            Dictionary of dynamically-managed clients
+        dict[str, Client]
+            Dictionary of dynamically-managed clients.
         """
         return dict(self._dynamic_clients)
 

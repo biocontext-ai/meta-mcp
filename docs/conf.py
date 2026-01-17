@@ -122,7 +122,18 @@ html_theme_options = {
 pygments_style = "default"
 
 nitpick_ignore = [
-    # If building the documentation fails because of a missing link that is outside your control,
-    # you can add an exception to this list.
-    #     ("py:class", "igraph.Graph"),
+    # External/typing targets without intersphinx inventories.
+    ("py:obj", "fastmcp.FastMCP"),
+    ("py:class", "fastmcp.FastMCP"),
+    ("py:class", "fastmcp.Client"),
+    ("py:class", "Client"),
+    ("py:class", "Annotated[str | None"),
+    ("py:class", "pydantic.BaseModel"),
+    ("py:obj", "pydantic.BaseModel"),
+    ("py:class", "litellm.Response"),
+    ("py:class", "Field"),
+    ("py:class", "sentence_transformers.SentenceTransformer"),
+    ("py:class", "np.ndarray"),
+    ("py:class", "pandas.DataFrame"),
+    ("py:class", "pd.DataFrame"),
 ]

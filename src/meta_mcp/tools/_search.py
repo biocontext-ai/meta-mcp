@@ -102,27 +102,20 @@ def general_search(
         The search query string.
     candidates : list[str]
         List of candidate strings to search through.
-    top_n : int, optional
+    top_n : int
         Number of top results to return (default: 5).
-    mode : str, optional
+    mode : str
         Search mode: "string_match", "llm", or "semantic" (default: "string_match").
-    string_match_method : str, optional
+    string_match_method : str
         String matching method: "fuzzy" or "substring" (default: "fuzzy").
-    descriptions : list[str | None] | None, optional
+    descriptions : list[str | None] | None
         Optional list of descriptions for candidates. Must match length of candidates.
         Used in both "llm" and "semantic" search modes. In "llm" mode, descriptions
         are formatted as CSV in the system prompt. In "semantic" mode, descriptions are
         combined with candidates as "candidate (description)" for embedding computation.
-    **kwargs
-        Mode-specific keyword arguments:
-        - For "llm" mode:
-          - model: Model name for LLM backend (default: "gpt-5-nano")
-          - temperature: Sampling temperature (default: 1.0)
-          - reasoning: Whether to include reasoning in LLM output (default: True)
-        - For "semantic" mode:
-          - backend: "direct" or "http" (default: "direct")
-          - model: Model name for direct backend (default: "all-MiniLM-L6-v2")
-          - http_url: URL for HTTP backend (default: "http://127.0.0.1:8501/embed")
+    **kwargs : dict
+        Mode-specific keyword arguments. "llm" mode keys: model (str), temperature (float),
+        reasoning (bool). "semantic" mode keys: backend (str), model (str), http_url (str).
 
     Returns
     -------
@@ -207,12 +200,12 @@ def _create_search_output_model(candidates: list[str], reasoning: bool = True) -
     ----------
     candidates : list[str]
         List of candidate strings to create Literal types from.
-    reasoning : bool, optional
+    reasoning : bool
         Whether to include a reasoning field in the output model (default: True).
 
     Returns
     -------
-    type[BaseModel]
+    type
         Dynamically created Pydantic model with selected_strings field and optionally reasoning field.
     """
     # Create a single Literal type with all candidates unpacked from a tuple
@@ -245,10 +238,10 @@ def _create_search_system_prompt(
         List of candidate strings to search through.
     top_n : int
         Number of top results to return.
-    descriptions : list[str | None] | None, optional
+    descriptions : list[str | None] | None
         Optional list of descriptions for candidates. If provided and not all None,
         formats candidates and descriptions as CSV table. Otherwise uses numbered list format.
-    reasoning : bool, optional
+    reasoning : bool
         Whether to include reasoning instructions in the prompt (default: True).
 
     Returns
@@ -318,15 +311,15 @@ def _llm_search(
         List of candidate strings to search through.
     top_n : int
         Number of top results to return.
-    model : str, optional
+    model : str
         Model name for LLM backend (default: "openai/gpt-5-nano").
-    temperature : float, optional
+    temperature : float
         Sampling temperature (default: 1.0).
-    descriptions : list[str | None] | None, optional
+    descriptions : list[str | None] | None
         Optional list of descriptions for candidates. When provided, candidates and
         descriptions are formatted as CSV in the system prompt to help the LLM
         make better matches. The function still returns only the original candidates.
-    reasoning : bool, optional
+    reasoning : bool
         Whether to include reasoning in LLM output and prompt (default: True).
     **kwargs
         Additional keyword arguments (unused, reserved for future use).
@@ -467,14 +460,14 @@ def _semantic_search(
         List of candidate strings to search through.
     top_n : int
         Number of top results to return.
-    backend : str, optional
+    backend : str
         Backend to use: "direct" or "http" (default: "direct").
-    model : str, optional
+    model : str
         Model name for direct backend (default: "all-MiniLM-L6-v2").
-    http_url : str, optional
+    http_url : str
         URL for HTTP backend (default: "http://127.0.0.1:8501/embed"). When unset,
         falls back to the META_MCP_EMBEDDING_HTTP_URL environment variable.
-    descriptions : list[str | None] | None, optional
+    descriptions : list[str | None] | None
         Optional list of descriptions for candidates. Combined with candidates
         as "candidate (description)" for embedding computation.
     **kwargs
@@ -581,7 +574,7 @@ def _semantic_search_http(
 
     Raises
     ------
-    httpx.HTTPError
+    RuntimeError
         If the HTTP request fails.
     ValueError
         If the server response is invalid.

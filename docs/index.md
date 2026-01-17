@@ -7,5 +7,6 @@
 :maxdepth: 2
 :glob:
 
+autoapi/index
 autoapi/meta_mcp/index
 ```

@@ -15,12 +15,15 @@ litellm.enable_json_schema_validation = True
 def load_config(mcp_json_path: str) -> dict:
     """Load MCP configuration from a JSON file.
 
-    Args:
-        mcp_json_path: Path to the MCP configuration JSON file
+    Parameters
+    ----------
+    mcp_json_path : str
+        Path to the MCP configuration JSON file.
 
     Returns
     -------
-        Dictionary containing the MCP configuration
+    dict
+        MCP configuration data.
     """
     with open(mcp_json_path) as f:
         config = json.load(f)
@@ -30,14 +33,19 @@ def load_config(mcp_json_path: str) -> dict:
 def to_message(content: str, role: str = "user", content_type: str = "input_text"):
     """Create a message dictionary for LLM API calls.
 
-    Args:
-        content: The message content text
-        role: The role of the message sender (e.g., "user", "system")
-        content_type: The type of content (e.g., "input_text")
+    Parameters
+    ----------
+    content : str
+        The message content text.
+    role : str
+        The role of the message sender (default: "user").
+    content_type : str
+        The type of content (default: "input_text").
 
     Returns
     -------
-        Dictionary representing a message with role and content structure
+    dict
+        Message payload for LLM API calls.
     """
     return {
         "role": role,
@@ -56,16 +64,23 @@ def get_structured_response_litellm(
 ) -> BaseModel:
     """Get a structured response from LiteLLM using JSON schema validation.
 
-    Args:
-        input: The user input text
-        system_prompt: The system prompt to guide the model
-        output_model: Pydantic model class defining the expected output schema
-        model: The model name to use (default: "openai/gpt-5-nano")
-        temperature: Sampling temperature (default: 1.0)
+    Parameters
+    ----------
+    input : str
+        The user input text.
+    system_prompt : str
+        The system prompt to guide the model.
+    output_model : type
+        Pydantic model class defining the expected output schema.
+    model : str
+        The model name to use (default: "openai/gpt-5-nano").
+    temperature : float
+        Sampling temperature (default: 1.0).
 
     Returns
     -------
-        LiteLLM Response object containing the structured output
+    object
+        LiteLLM response object containing the structured output.
 
     Raises
     ------
@@ -102,13 +117,17 @@ def get_structured_response_litellm(
 def structured_response_to_output_model(response: litellm.Response, output_model: type[BaseModel]) -> BaseModel:
     """Convert a LiteLLM Response to a Pydantic model instance.
 
-    Args:
-        response: LiteLLM Response object containing the structured output
-        output_model: Pydantic model class to instantiate
+    Parameters
+    ----------
+    response : object
+        LiteLLM response object containing the structured output.
+    output_model : type
+        Pydantic model class to instantiate.
 
     Returns
     -------
-        Instance of the output_model populated with data from the response
+    object
+        Instance of the output_model populated with data from the response.
 
     Raises
     ------
@@ -157,13 +176,17 @@ class SchemaReasoningOutput(BaseModel):
 def load_json_from_url(url_or_path: str, timeout: float = 10.0):
     """Download and parse a JSON file from URL or load from file path.
 
-    Args:
-        url_or_path: URL to download JSON from or local file path
-        timeout: Timeout in seconds for URL requests (default: 10.0)
+    Parameters
+    ----------
+    url_or_path : str
+        URL to download JSON from or local file path.
+    timeout : float
+        Timeout in seconds for URL requests (default: 10.0).
 
     Returns
     -------
-        Parsed JSON data as dictionary
+    dict
+        Parsed JSON data.
     """
     # Check if it's a URL (starts with http:// or https://) or a file path
     if url_or_path.startswith(("http://", "https://")):
@@ -212,13 +235,15 @@ def registry_json_to_df(registry_json: list[dict]) -> pd.DataFrame:
     Collects all possible columns from all elements, handling missing keys.
     Nested JSON structures are converted to JSON strings.
 
-    Args:
-        registry_json: List of dictionaries representing registry entries
+    Parameters
+    ----------
+    registry_json : list[dict]
+        List of dictionaries representing registry entries.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame with all columns from all registry entries
+        DataFrame with all columns from all registry entries.
     """
     if not registry_json:
         return pd.DataFrame()
