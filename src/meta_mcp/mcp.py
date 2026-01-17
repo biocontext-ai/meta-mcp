@@ -134,11 +134,11 @@ class MetaFastMCPDynamic(FastMCP):
                 client = Client(server_config, name=f"{self.name}:{server_name}")
                 try:
                     await stack.enter_async_context(client)
+                    self._lifespan_clients[server_name] = client
+                    await self._update_tools_from_client(server_name, client)
                 except (RuntimeError, ConnectionError, ValueError) as e:
                     # Skip servers that fail to connect during initialization
                     print(f"Failed to connect to server '{server_name}': {e}")
-                self._lifespan_clients[server_name] = client
-                await self._update_tools_from_client(server_name, client)
             try:
                 yield {"clients": self._lifespan_clients}
             finally:
