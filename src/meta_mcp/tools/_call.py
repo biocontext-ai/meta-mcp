@@ -2,6 +2,7 @@ import json
 import os
 from typing import Annotated
 
+from fastmcp.exceptions import ToolError
 from json_schema_to_pydantic import create_model
 from pydantic import create_model as pydantic_create_model
 
@@ -68,5 +69,5 @@ async def call_tool(
         if os.environ.get("META_MCP_OUTPUT_ARGS", "false").lower() == "true":
             result["schema_conform_arguments"] = json.dumps(output_parsed_dict)
         return json.dumps(result)
-    except (RuntimeError, ValueError, KeyError, TypeError) as e:
+    except (RuntimeError, ValueError, KeyError, TypeError, ToolError) as e:
         return f"Failed to call tool: {e}"
