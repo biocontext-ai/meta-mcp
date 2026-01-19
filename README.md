@@ -39,7 +39,7 @@ uvx git+https://github.com/biocontext-ai/meta-mcp.git@main
 
 ### 2. Include it in one of various clients that supports the `mcp.json` standard
 
-If your MCP server is published to PyPI, use the following configuration:
+Pull the package from PyPI and start the server with the following configuration:
 
 ```json
 {
@@ -156,6 +156,18 @@ docker run --rm -p 9000:9000 \
   -e MCP_HOSTNAME=0.0.0.0 \
   -e MCP_PORT=9000 \
   biocontext-meta
+```
+
+To access the MCP server from a client, you can use the following URL: `http://localhost:8000/mcp` or the following `mcp.json` configuration:
+
+```json
+{
+  "mcpServers": {
+    "meta-mcp": {
+      "url": "http://localhost:8000/mcp"
+    }
+  }
+}
 ```
 
 ## Configuration
