@@ -25,7 +25,7 @@ There are several alternative options to install meta-mcp:
 
 ### 1. Use `uvx` to run it immediately
 
-After publication to PyPI:
+From [PyPI]:
 
 ```bash
 uvx biocontext-meta
@@ -57,7 +57,7 @@ If your MCP server is published to PyPI, use the following configuration:
 }
 ```
 
-In case the MCP server is not yet published to PyPI, use this configuration:
+From a Git repository:
 
 ```json
 {
@@ -127,6 +127,57 @@ pip install --user biocontext-meta
 ```bash
 pip install git+https://github.com/biocontext-ai/meta-mcp.git@main
 ```
+
+## Docker (streamable HTTP)
+
+The Docker image runs the MCP server in streamable HTTP mode by default (`MCP_TRANSPORT=http`) and listens on port 8000.
+
+Build the image:
+
+```bash
+docker build -t biocontext-meta .
+```
+
+Run the server:
+
+```bash
+docker run --rm -p 8000:8000 \
+  -e OPENAI_API_KEY=YOUR_OPENAI_API_KEY \
+  -e ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY \
+  -e GEMINI_API_KEY=YOUR_GEMINI_API_KEY \
+  biocontext-meta
+```
+
+Override transport/host/port if needed:
+
+```bash
+docker run --rm -p 9000:9000 \
+  -e MCP_TRANSPORT=http \
+  -e MCP_HOSTNAME=0.0.0.0 \
+  -e MCP_PORT=9000 \
+  biocontext-meta
+```
+
+## Configuration
+
+The CLI supports flags and equivalent environment variables for all options:
+
+- `--transport` / `MCP_TRANSPORT` (default: `stdio`)
+- `--host` / `MCP_HOSTNAME` (default: `0.0.0.0`)
+- `--port` / `MCP_PORT` (default: `8000`)
+- `--connect-on-startup` / `MCP_CONNECT_ON_STARTUP` (not recommended)
+- `--registry-json` / `MCP_REGISTRY_JSON` (default: `https://biocontext.ai/registry.json`)
+- `--registry-mcp-json` / `MCP_REGISTRY_MCP_JSON` (default: `https://biocontext.ai/mcp.json`)
+- `--registry-mcp-tools-json` / `MCP_REGISTRY_MCP_TOOLS_JSON` (default: `https://biocontext.ai/mcp_tools.json`)
+- `--model` / `META_MCP_MODEL` (default: `openai/gpt-5-nano`)
+- `--search-mode` / `MCP_SEARCH_MODE` (`string_match`, `llm`, `semantic`; default: `llm`)
+- `--reasoning` / `META_MCP_REASONING` (default: `false`)
+- `--max-servers` / `MCP_MAX_SERVERS` (default: `10`)
+- `--max-tools` / `MCP_MAX_TOOLS` (default: `10`)
+- `--output-args` / `META_MCP_OUTPUT_ARGS` (default: `false`)
+- `--version` (print package version)
+
+Semantic search (`--search-mode semantic`) uses `sentence-transformers` by default with model `all-MiniLM-L6-v2`, which downloads on first use. For an HTTP embedding backend, set `META_MCP_EMBEDDING_HTTP_URL` (default: `http://127.0.0.1:8501/embed`).
 
 ## How it works
 
