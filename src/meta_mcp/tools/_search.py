@@ -6,7 +6,6 @@ import httpx
 import numpy as np
 from pydantic import BaseModel, Field, create_model
 from rapidfuzz import process
-from sentence_transformers import SentenceTransformer
 
 from meta_mcp.mcp import mcp
 from meta_mcp.utils import get_structured_response_litellm, structured_response_to_output_model
@@ -374,7 +373,7 @@ def _llm_search(
 
 
 # Model cache for direct backend
-_model_cache: dict[str, SentenceTransformer] = {}
+_model_cache: dict[str, object] = {}
 
 
 def _prepare_semantic_candidates(
@@ -529,6 +528,8 @@ def _semantic_search_direct(
     """
     # Lazy-load and cache model
     if model not in _model_cache:
+        from sentence_transformers import SentenceTransformer
+
         _model_cache[model] = SentenceTransformer(model)
 
     encoder = _model_cache[model]
