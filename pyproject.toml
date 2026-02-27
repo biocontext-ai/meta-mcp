@@ -30,7 +30,6 @@ dependencies = [
   "numpy>=2.4.1",
   "pandas>=2.3.3",
   "rapidfuzz>=3.14.3",
-  "sentence-transformers>=5.2.0",
 ]
 [project.optional-dependencies]
 dev = [
@@ -59,6 +58,9 @@ test = [
   "pytest",
   "pytest-asyncio",
   "anndata",
+]
+semantic = [
+  "sentence-transformers>=5.2.0",
 ]
 
 [project.urls]
@@ -94,7 +96,7 @@ deps = [ "pre" ]
 python = [ "3.13" ]
 
 [tool.hatch.envs.hatch-test]
-features = [ "test" ]
+features = [ "test", "semantic" ]
 
 [tool.hatch.envs.hatch-test.overrides]
 # If the matrix variable `deps` is set to "pre",

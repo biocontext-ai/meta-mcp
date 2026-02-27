@@ -394,7 +394,6 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "rapidfuzz" },
-    { name = "sentence-transformers" },
 ]
 
 [package.optional-dependencies]
@@ -416,6 +415,9 @@ doc = [
     { name = "sphinx-copybutton" },
     { name = "sphinx-tabs" },
     { name = "sphinxext-opengraph" },
+]
+semantic = [
+    { name = "sentence-transformers" },
 ]
 test = [
     { name = "anndata" },
@@ -445,7 +447,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'" },
     { name = "pytest-asyncio", marker = "extra == 'test'" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },
-    { name = "sentence-transformers", specifier = ">=5.2.0" },
+    { name = "sentence-transformers", marker = "extra == 'semantic'", specifier = ">=5.2.0" },
     { name = "setuptools", marker = "extra == 'doc'" },
     { name = "sphinx", marker = "extra == 'doc'", specifier = ">=8.1" },
     { name = "sphinx-autoapi", marker = "extra == 'doc'" },
@@ -455,7 +457,7 @@ requires-dist = [
     { name = "sphinxext-opengraph", marker = "extra == 'doc'" },
     { name = "twine", marker = "extra == 'dev'", specifier = ">=4.0.2" },
 ]
-provides-extras = ["dev", "doc", "test"]
+provides-extras = ["dev", "doc", "test", "semantic"]
 
 [[package]]
 name = "bleach"
